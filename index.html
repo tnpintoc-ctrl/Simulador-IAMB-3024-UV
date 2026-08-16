@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Malla Interactiva - Ingeniería Ambiental (Plan Oficial REXE 3024)</title>
 
-    <!-- ===== PWA: manifest, tema e íconos ===== -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#16a34a" id="meta-theme-color">
     <meta name="description" content="Simulador interactivo de la malla curricular de Ingeniería Ambiental — Plan Oficial REXE 3024, Universidad de Valparaíso.">
@@ -16,13 +16,11 @@
     <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-touch-icon.png">
     <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-touch-icon.png">
 
-    <!-- iOS: standalone mode -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default" id="meta-status-bar">
     <meta name="apple-mobile-web-app-title" content="Malla IAMB">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -42,75 +40,36 @@
         }
     </script>
     <style>
-        /* ===== VARIABLES DE TEMA ===== */
         :root {
-            --bg-body: #f8fafc;
-            --bg-card: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-muted: #94a3b8;
-            --border-color: #e2e8f0;
-            --surface-50: #f8fafc;
-            --surface-100: #f1f5f9;
-            --surface-200: #e2e8f0;
-            --surface-800: #1e293b;
-            --surface-900: #0f172a;
-            --brand-50: #f0fdf4;
-            --brand-100: #dcfce7;
-            --brand-500: #22c55e;
-            --brand-600: #16a34a;
-            --brand-700: #15803d;
-            --brand-800: #166534;
-            --brand-900: #14532d;
-            --accent-color: #16a34a;
-            --header-bg: #0f172a;
-            --header-text: #ffffff;
+            --bg-body: #f8fafc; --bg-card: #ffffff; --text-primary: #0f172a; --text-secondary: #64748b;
+            --text-muted: #94a3b8; --border-color: #e2e8f0; --surface-50: #f8fafc; --surface-100: #f1f5f9;
+            --surface-200: #e2e8f0; --surface-800: #1e293b; --surface-900: #0f172a;
+            --brand-50: #f0fdf4; --brand-100: #dcfce7; --brand-500: #22c55e; --brand-600: #16a34a;
+            --brand-700: #15803d; --brand-800: #166534; --brand-900: #14532d;
+            --accent-color: #16a34a; --header-bg: #0f172a; --header-text: #ffffff;
         }
-
         .dark {
-            --bg-body: #020617;
-            --bg-card: #0f172a;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #475569;
-            --border-color: #1e293b;
-            --surface-50: #0f172a;
-            --surface-100: #1e293b;
-            --surface-200: #334155;
-            --surface-800: #f1f5f9;
-            --surface-900: #f8fafc;
+            --bg-body: #020617; --bg-card: #0f172a; --text-primary: #f8fafc; --text-secondary: #94a3b8;
+            --text-muted: #475569; --border-color: #1e293b; --surface-50: #0f172a; --surface-100: #1e293b;
+            --surface-200: #334155; --surface-800: #f1f5f9; --surface-900: #f8fafc;
         }
-
-        /* Paleta: Océano */
         [data-palette="ocean"] {
-            --brand-50: #f0f9ff; --brand-100: #e0f2fe; --brand-500: #0ea5e9;
-            --brand-600: #0284c7; --brand-700: #0369a1; --brand-800: #075985; --brand-900: #0c4a6e;
-            --accent-color: #0284c7;
+            --brand-50: #f0f9ff; --brand-100: #e0f2fe; --brand-500: #0ea5e9; --brand-600: #0284c7;
+            --brand-700: #0369a1; --brand-800: #075985; --brand-900: #0c4a6e; --accent-color: #0284c7;
         }
         .dark[data-palette="ocean"] {
-            --brand-50: #082f49; --brand-100: #0c4a6e; --brand-500: #38bdf8;
-            --brand-600: #0ea5e9; --brand-700: #0284c7; --brand-800: #0369a1; --brand-900: #075985;
-            --accent-color: #38bdf8;
+            --brand-50: #082f49; --brand-100: #0c4a6e; --brand-500: #38bdf8; --brand-600: #0ea5e9;
+            --brand-700: #0284c7; --brand-800: #0369a1; --brand-900: #075985; --accent-color: #38bdf8;
         }
-
-        /* Paleta: Atardecer */
         [data-palette="sunset"] {
-            --brand-50: #fdf4ff; --brand-100: #fae8ff; --brand-500: #d946ef;
-            --brand-600: #c026d3; --brand-700: #a21caf; --brand-800: #86198f; --brand-900: #701a75;
-            --accent-color: #c026d3;
+            --brand-50: #fdf4ff; --brand-100: #fae8ff; --brand-500: #d946ef; --brand-600: #c026d3;
+            --brand-700: #a21caf; --brand-800: #86198f; --brand-900: #701a75; --accent-color: #c026d3;
         }
         .dark[data-palette="sunset"] {
-            --brand-50: #4a044e; --brand-100: #701a75; --brand-500: #e879f9;
-            --brand-600: #d946ef; --brand-700: #c026d3; --brand-800: #a21caf; --brand-900: #86198f;
-            --accent-color: #e879f9;
+            --brand-50: #4a044e; --brand-100: #701a75; --brand-500: #e879f9; --brand-600: #d946ef;
+            --brand-700: #c026d3; --brand-800: #a21caf; --brand-900: #86198f; --accent-color: #e879f9;
         }
-
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-primary);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
+        body { background-color: var(--bg-body); color: var(--text-primary); transition: background-color 0.3s ease, color 0.3s ease; }
         .dark .bg-white, .dark .bg-slate-50, .dark .bg-slate-100 { background-color: var(--bg-card) !important; }
         .dark .bg-slate-200 { background-color: var(--surface-200) !important; }
         .dark .bg-slate-800 { background-color: var(--surface-800) !important; }
@@ -125,15 +84,10 @@
         .dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3) !important; }
         .dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.4) !important; }
         .dark .ring-slate-300 { --tw-ring-color: #334155 !important; }
-        .dark input, .dark select, .dark textarea {
-            background-color: var(--bg-card);
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
+        .dark input, .dark select, .dark textarea { background-color: var(--bg-card); color: var(--text-primary); border-color: var(--border-color); }
         .dark input::placeholder, .dark textarea::placeholder { color: var(--text-muted); }
         .dark .custom-scrollbar::-webkit-scrollbar-track { background: var(--surface-100); }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--surface-200); }
-
         .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -141,65 +95,26 @@
         .ramo-card { transition: all 0.2s ease-in-out; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
         @media print {
             @page { size: landscape; margin: 0.4cm; }
-            body {
-                background: white !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                zoom: 78%;
-            }
-            header, #dashboard-section, #ios-banner,
-            #busqueda-section, #leyenda-section, .no-print { display: none !important; }
-            .semestre-col[data-semestre="1"],
-            .semestre-col[data-semestre="2"],
-            .semestre-col[data-semestre="3"],
-            .semestre-col[data-semestre="4"] { display: none !important; }
-            #malla-section {
-                border: none !important; box-shadow: none !important;
-                padding: 0 !important; margin: 0 !important;
-            }
-            #malla-grid {
-                min-width: 100% !important;
-                display: grid !important;
-                grid-template-columns: repeat(6, 1fr) !important;
-                gap: 5px !important; overflow: hidden !important;
-            }
+            body { background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; zoom: 78%; }
+            header, #dashboard-section, #ios-banner, #busqueda-section, #leyenda-section, .no-print { display: none !important; }
+            .semestre-col[data-semestre="1"], .semestre-col[data-semestre="2"], .semestre-col[data-semestre="3"], .semestre-col[data-semestre="4"] { display: none !important; }
+            #malla-section { border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+            #malla-grid { min-width: 100% !important; display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 5px !important; overflow: hidden !important; }
             .semestre-col { width: 100% !important; }
-            .ramo-card {
-                background: white !important; border: 1.5px solid #333 !important;
-                color: black !important; box-shadow: none !important;
-                padding: 5px !important; min-height: 80px !important;
-                break-inside: avoid; page-break-inside: avoid;
-            }
+            .ramo-card { background: white !important; border: 1.5px solid #333 !important; color: black !important; box-shadow: none !important; padding: 5px !important; min-height: 80px !important; break-inside: avoid; page-break-inside: avoid; }
             .ramo-card * { color: black !important; }
             .ramo-card [class*="bg-"] { background: transparent !important; border: 1px solid #999 !important; }
-            .ramo-card.print-aprobado {
-                background: #f8fafc !important; border: 1px dashed #cbd5e1 !important;
-                opacity: 0.4 !important;
-            }
+            .ramo-card.print-aprobado { background: #f8fafc !important; border: 1px dashed #cbd5e1 !important; opacity: 0.4 !important; }
             .ramo-card.print-aprobado * { color: #64748b !important; }
-            .titulo-impresion {
-                display: block !important; text-align: center;
-                font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; color: black !important;
-            }
+            .titulo-impresion { display: block !important; text-align: center; font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; color: black !important; }
         }
         .titulo-impresion { display: none; }
-
         .tooltip-pr { position: relative; }
-        .tooltip-pr::after {
-            content: attr(data-tooltip);
-            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-            background: #1e293b; color: white; padding: 4px 8px; border-radius: 6px;
-            font-size: 10px; white-space: nowrap; opacity: 0; pointer-events: none;
-            transition: opacity 0.2s; z-index: 50;
-        }
+        .tooltip-pr::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50; }
         .tooltip-pr:hover::after { opacity: 1; }
-
-        .theme-transition {
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-        }
+        .theme-transition { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease; }
     </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col theme-transition" data-theme="light" data-palette="uv">
@@ -209,10 +124,7 @@
     <div class="max-w-[90rem] mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
         <div class="flex items-center space-x-3">
             <div class="p-2 rounded-lg text-white" style="background-color: var(--accent-color);">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                </svg>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-wide">Ingeniería Ambiental</h1>
@@ -287,7 +199,6 @@
         </div>
     </div>
 </header>
-    <!-- Banner iOS: cómo instalar -->
     <div id="ios-banner" class="hidden no-print">
         <div class="max-w-[90rem] mx-auto px-4 pt-3">
             <div class="rounded-xl p-3 flex items-center justify-between gap-3 theme-transition" style="background: linear-gradient(135deg, var(--brand-600), var(--brand-700)); color: white;">
@@ -297,7 +208,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold">Instala esta app en tu iPhone</p>
-                        <p class="text-xs opacity-90">Toca <b>Compartir</b> <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg> y luego <b>"Agregar a pantalla de inicio"</b> para usarla sin conexión.</p>
+                        <p class="text-xs opacity-90">Toca <b>Compartir</b> y luego <b>"Agregar a pantalla de inicio"</b> para usarla sin conexión.</p>
                     </div>
                 </div>
                 <button onclick="document.getElementById('ios-banner').classList.add('hidden')" class="shrink-0 p-1.5 hover:bg-white/20 rounded-lg transition">
@@ -1106,7 +1017,202 @@
             }).join('');
         }
 
-// ===================================================================
+
+        // ===================== SISTEMA DE TEMA =============================
+        const THEME_KEY = 'malla_theme_prefs';
+        let currentTheme = 'light';
+        let currentPalette = 'uv';
+
+        function cargarTema() {
+            const guardado = localStorage.getItem(THEME_KEY);
+            if (guardado) {
+                try {
+                    const prefs = JSON.parse(guardado);
+                    currentTheme = prefs.theme || 'light';
+                    currentPalette = prefs.palette || 'uv';
+                } catch (e) {}
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                currentTheme = 'dark';
+            }
+            aplicarTema(currentTheme, currentPalette);
+        }
+
+        function aplicarTema(theme, palette) {
+            currentTheme = theme;
+            currentPalette = palette;
+            const html = document.documentElement;
+            const body = document.body;
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                body.setAttribute('data-theme', 'dark');
+                document.getElementById('meta-status-bar').setAttribute('content', 'black-translucent');
+            } else {
+                html.classList.remove('dark');
+                body.setAttribute('data-theme', 'light');
+                document.getElementById('meta-status-bar').setAttribute('content', 'default');
+            }
+            body.setAttribute('data-palette', palette);
+            const sel = document.getElementById('select-paleta');
+            if (sel) sel.value = palette;
+            const sun = document.getElementById('icon-sun');
+            const moon = document.getElementById('icon-moon');
+            if (sun && moon) {
+                if (theme === 'dark') { sun.classList.add('hidden'); moon.classList.remove('hidden'); }
+                else { sun.classList.remove('hidden'); moon.classList.add('hidden'); }
+            }
+            const metaTheme = document.getElementById('meta-theme-color');
+            if (metaTheme) {
+                const rootStyles = getComputedStyle(document.body);
+                const accent = rootStyles.getPropertyValue('--accent-color').trim();
+                metaTheme.setAttribute('content', accent || '#16a34a');
+            }
+            localStorage.setItem(THEME_KEY, JSON.stringify({ theme, palette }));
+        }
+
+        function toggleDarkMode() {
+            aplicarTema(currentTheme === 'light' ? 'dark' : 'light', currentPalette);
+        }
+
+        function cambiarPaleta(palette) {
+            aplicarTema(currentTheme, palette);
+        }
+
+        // ===================== SUPABASE: AUTH + SYNC =======================
+        const SUPABASE_URL = 'https://TU-PROJECT.supabase.co';
+        const SUPABASE_ANON_KEY = 'TU-ANON-KEY';
+        let supabaseClient = null;
+        let currentUser = null;
+        let syncTimeout = null;
+
+        function initSupabase() {
+            if (!window.supabase || SUPABASE_URL.includes('TU-PROJECT')) {
+                console.log('Supabase no configurado. Usando solo localStorage.');
+                return;
+            }
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                setupAuthListener();
+                checkSession();
+            } catch (e) { console.error('Error inicializando Supabase:', e); }
+        }
+
+        function setupAuthListener() {
+            if (!supabaseClient) return;
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    currentUser = session.user;
+                    loadUserProgress(currentUser.id);
+                    updateAuthUI(session.user);
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    updateAuthUI(null);
+                }
+            });
+        }
+
+        async function checkSession() {
+            if (!supabaseClient) return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                updateAuthUI(session.user);
+                loadUserProgress(session.user.id);
+            }
+        }
+
+        async function signInWithMicrosoft() {
+            if (!supabaseClient) {
+                alert('La nube aún no está configurada. Ve al código y reemplaza SUPABASE_URL y SUPABASE_ANON_KEY con tus credenciales.');
+                return;
+            }
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'azure',
+                options: { scopes: 'email', redirectTo: window.location.origin + window.location.pathname }
+            });
+            if (error) { console.error('Error login:', error); alert('Error al iniciar sesión: ' + error.message); }
+        }
+
+        async function signOut() {
+            if (!supabaseClient) return;
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            updateAuthUI(null);
+        }
+
+        function updateAuthUI(user) {
+            const btnLogin = document.getElementById('btn-login');
+            const userInfo = document.getElementById('user-info');
+            const userAvatar = document.getElementById('user-avatar');
+            const userName = document.getElementById('user-name');
+            if (user) {
+                if (btnLogin) btnLogin.classList.add('hidden');
+                if (userInfo) userInfo.classList.remove('hidden');
+                if (userAvatar) {
+                    userAvatar.src = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
+                    userAvatar.alt = user.user_metadata?.full_name || user.email || 'Usuario';
+                }
+                if (userName) userName.textContent = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+            } else {
+                if (btnLogin) btnLogin.classList.remove('hidden');
+                if (userInfo) userInfo.classList.add('hidden');
+            }
+        }
+
+        async function saveUserProgress() {
+            if (!supabaseClient || !currentUser) return;
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(async () => {
+                const progress = {
+                    user_id: currentUser.id,
+                    estado_ramos: estadoRamos,
+                    calc_ramos: calcRamos,
+                    theme_prefs: { theme: currentTheme, palette: currentPalette },
+                    updated_at: new Date().toISOString()
+                };
+                const { error } = await supabaseClient.from('user_progress').upsert(progress, { onConflict: 'user_id' });
+                if (error) console.error('Error guardando en la nube:', error);
+                else console.log('Progreso guardado en la nube ✅');
+            }, 2000);
+        }
+
+        async function loadUserProgress(userId) {
+            if (!supabaseClient) return;
+            const { data, error } = await supabaseClient.from('user_progress').select('*').eq('user_id', userId).single();
+            if (error && error.code !== 'PGRST116') { console.error('Error cargando progreso:', error); return; }
+            if (data) {
+                let cambio = false;
+                if (data.estado_ramos && Object.keys(data.estado_ramos).length > 0) { estadoRamos = data.estado_ramos; cambio = true; }
+                if (data.calc_ramos && data.calc_ramos.length > 0) { calcRamos = data.calc_ramos; cambio = true; }
+                if (data.theme_prefs) { aplicarTema(data.theme_prefs.theme || 'light', data.theme_prefs.palette || 'uv'); }
+                if (cambio) { guardarEstado(); guardarCalcNotas(); render(); renderCalcNotas(); }
+            }
+        }
+
+        const _originalGuardarEstado = guardarEstado;
+        guardarEstado = function() { _originalGuardarEstado(); saveUserProgress(); };
+        const _originalGuardarCalcNotas = guardarCalcNotas;
+        guardarCalcNotas = function() { _originalGuardarCalcNotas(); saveUserProgress(); };
+
+        // ===================== BANNER iOS ==================================
+        function detectarIOS() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.navigator.standalone === true;
+            const banner = document.getElementById('ios-banner');
+            if (isIOS && !isStandalone && banner) banner.classList.remove('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarTema();
+            inicializarEstado();
+            inicializarCalcNotas();
+            render();
+            renderCalcNotas();
+            inicializarNotificacionesPrerrequisitos();
+            initSupabase();
+            detectarIOS();
+        });
+
+        // ===================================================================
         // ===================== PWA: INSTALACIÓN Y OFFLINE ================
         // ===================================================================
 
@@ -1204,262 +1310,7 @@
         }
     </script>
 
-    
-        // ===================================================================
-        // ===================== SISTEMA DE TEMA =============================
-        // ===================================================================
-        const THEME_KEY = 'malla_theme_prefs';
-        let currentTheme = 'light';
-        let currentPalette = 'uv';
-
-        function cargarTema() {
-            const guardado = localStorage.getItem(THEME_KEY);
-            if (guardado) {
-                try {
-                    const prefs = JSON.parse(guardado);
-                    currentTheme = prefs.theme || 'light';
-                    currentPalette = prefs.palette || 'uv';
-                } catch (e) {}
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                currentTheme = 'dark';
-            }
-            aplicarTema(currentTheme, currentPalette);
-        }
-
-        function aplicarTema(theme, palette) {
-            currentTheme = theme;
-            currentPalette = palette;
-            const html = document.documentElement;
-            const body = document.body;
-
-            if (theme === 'dark') {
-                html.classList.add('dark');
-                body.setAttribute('data-theme', 'dark');
-                document.getElementById('meta-status-bar').setAttribute('content', 'black-translucent');
-            } else {
-                html.classList.remove('dark');
-                body.setAttribute('data-theme', 'light');
-                document.getElementById('meta-status-bar').setAttribute('content', 'default');
-            }
-
-            body.setAttribute('data-palette', palette);
-            document.getElementById('select-paleta').value = palette;
-
-            const sun = document.getElementById('icon-sun');
-            const moon = document.getElementById('icon-moon');
-            if (sun && moon) {
-                if (theme === 'dark') {
-                    sun.classList.add('hidden');
-                    moon.classList.remove('hidden');
-                } else {
-                    sun.classList.remove('hidden');
-                    moon.classList.add('hidden');
-                }
-            }
-
-            const metaTheme = document.getElementById('meta-theme-color');
-            if (metaTheme) {
-                const rootStyles = getComputedStyle(document.body);
-                const accent = rootStyles.getPropertyValue('--accent-color').trim();
-                metaTheme.setAttribute('content', accent || '#16a34a');
-            }
-
-            localStorage.setItem(THEME_KEY, JSON.stringify({ theme, palette }));
-        }
-
-        function toggleDarkMode() {
-            const nuevo = currentTheme === 'light' ? 'dark' : 'light';
-            aplicarTema(nuevo, currentPalette);
-        }
-
-        function cambiarPaleta(palette) {
-            aplicarTema(currentTheme, palette);
-        }
-
-        // ===================================================================
-        // ===================== SUPABASE: AUTH + SYNC =======================
-        // ===================================================================
-        const SUPABASE_URL = 'https://TU-PROJECT.supabase.co';
-        const SUPABASE_ANON_KEY = 'TU-ANON-KEY';
-
-        let supabaseClient = null;
-        let currentUser = null;
-        let syncTimeout = null;
-
-        function initSupabase() {
-            if (!window.supabase || SUPABASE_URL.includes('TU-PROJECT')) {
-                console.log('Supabase no configurado aún. Usando solo localStorage.');
-                return;
-            }
-            try {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                setupAuthListener();
-                checkSession();
-            } catch (e) {
-                console.error('Error inicializando Supabase:', e);
-            }
-        }
-
-        function setupAuthListener() {
-            if (!supabaseClient) return;
-            supabaseClient.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' && session) {
-                    currentUser = session.user;
-                    loadUserProgress(currentUser.id);
-                    updateAuthUI(session.user);
-                } else if (event === 'SIGNED_OUT') {
-                    currentUser = null;
-                    updateAuthUI(null);
-                }
-            });
-        }
-
-        async function checkSession() {
-            if (!supabaseClient) return;
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                updateAuthUI(session.user);
-                loadUserProgress(session.user.id);
-            }
-        }
-
-        async function signInWithMicrosoft() {
-            if (!supabaseClient) {
-                alert('La nube aún no está configurada. Ve al código y reemplaza SUPABASE_URL y SUPABASE_ANON_KEY con tus credenciales.');
-                return;
-            }
-            const { data, error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'azure',
-                options: {
-                    scopes: 'email',
-                    redirectTo: window.location.origin + window.location.pathname
-                }
-            });
-            if (error) {
-                console.error('Error login:', error);
-                alert('Error al iniciar sesión: ' + error.message);
-            }
-        }
-
-        async function signOut() {
-            if (!supabaseClient) return;
-            await supabaseClient.auth.signOut();
-            currentUser = null;
-            updateAuthUI(null);
-        }
-
-        function updateAuthUI(user) {
-            const btnLogin = document.getElementById('btn-login');
-            const userInfo = document.getElementById('user-info');
-            const userAvatar = document.getElementById('user-avatar');
-            const userName = document.getElementById('user-name');
-
-            if (user) {
-                if (btnLogin) btnLogin.classList.add('hidden');
-                if (userInfo) userInfo.classList.remove('hidden');
-                if (userAvatar) {
-                    userAvatar.src = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
-                    userAvatar.alt = user.user_metadata?.full_name || user.email || 'Usuario';
-                }
-                if (userName) userName.textContent = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
-            } else {
-                if (btnLogin) btnLogin.classList.remove('hidden');
-                if (userInfo) userInfo.classList.add('hidden');
-            }
-        }
-
-        async function saveUserProgress() {
-            if (!supabaseClient || !currentUser) return;
-            if (syncTimeout) clearTimeout(syncTimeout);
-            syncTimeout = setTimeout(async () => {
-                const progress = {
-                    user_id: currentUser.id,
-                    estado_ramos: estadoRamos,
-                    calc_ramos: calcRamos,
-                    theme_prefs: { theme: currentTheme, palette: currentPalette },
-                    updated_at: new Date().toISOString()
-                };
-                const { error } = await supabaseClient
-                    .from('user_progress')
-                    .upsert(progress, { onConflict: 'user_id' });
-                if (error) console.error('Error guardando en la nube:', error);
-                else console.log('Progreso guardado en la nube ✅');
-            }, 2000);
-        }
-
-        async function loadUserProgress(userId) {
-            if (!supabaseClient) return;
-            const { data, error } = await supabaseClient
-                .from('user_progress')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
-
-            if (error && error.code !== 'PGRST116') {
-                console.error('Error cargando progreso:', error);
-                return;
-            }
-
-            if (data) {
-                let cambio = false;
-                if (data.estado_ramos && Object.keys(data.estado_ramos).length > 0) {
-                    estadoRamos = data.estado_ramos;
-                    cambio = true;
-                }
-                if (data.calc_ramos && data.calc_ramos.length > 0) {
-                    calcRamos = data.calc_ramos;
-                    cambio = true;
-                }
-                if (data.theme_prefs) {
-                    aplicarTema(data.theme_prefs.theme || 'light', data.theme_prefs.palette || 'uv');
-                }
-                if (cambio) {
-                    guardarEstado();
-                    guardarCalcNotas();
-                    render();
-                    renderCalcNotas();
-                }
-            }
-        }
-
-        const originalGuardarEstado = guardarEstado;
-        guardarEstado = function() {
-            originalGuardarEstado();
-            saveUserProgress();
-        };
-        const originalGuardarCalcNotas = guardarCalcNotas;
-        guardarCalcNotas = function() {
-            originalGuardarCalcNotas();
-            saveUserProgress();
-        };
-
-        // ===================================================================
-        // ===================== BANNER iOS ==================================
-        // ===================================================================
-        function detectarIOS() {
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isStandalone = window.navigator.standalone === true;
-            const banner = document.getElementById('ios-banner');
-            if (isIOS && !isStandalone && banner) {
-                banner.classList.remove('hidden');
-            }
-        }
-
-        // ===================================================================
-        // ===================== INICIALIZACIÓN ==============================
-        // ===================================================================
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarTema();
-            inicializarEstado();
-            inicializarCalcNotas();
-            render();
-            renderCalcNotas();
-            inicializarNotificacionesPrerrequisitos();
-            initSupabase();
-            detectarIOS();
-        });
-<!-- Footer Autoría -->
+    <!-- Footer Autoría -->
     <footer class="py-4 mt-auto border-t no-print theme-transition" style="background-color: var(--header-bg); color: var(--text-secondary); border-color: var(--border-color);">
         <div class="max-w-[90rem] mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px]">
             <div class="flex items-center gap-2">
@@ -1472,11 +1323,6 @@
                 <span class="hidden sm:inline opacity-30">·</span>
                 <a href="mailto:tnpintoc@gmail.com" class="opacity-70 hover:opacity-100 transition underline decoration-dotted" style="color: var(--accent-color);">tnpintoc@gmail.com</a>
             </div>
-            <div class="opacity-50">
-                Plan REXE 3024 · Simulador Interactivo
-            </div>
+            <div class="opacity-50">Plan REXE 3024 · Simulador Interactivo</div>
         </div>
     </footer>
-
-</body>
-</html>
