@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Malla Interactiva - Ingeniería Ambiental (Plan Oficial REXE 3024)</title>
+
+    <!-- ===== PWA: manifest, tema e íconos ===== -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#16a34a" id="meta-theme-color">
+    <meta name="description" content="Simulador interactivo de la malla curricular de Ingeniería Ambiental — Plan Oficial REXE 3024, Universidad de Valparaíso.">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-touch-icon.png">
+
+    <!-- iOS: standalone mode -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" id="meta-status-bar">
+    <meta name="apple-mobile-web-app-title" content="Malla IAMB">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: 'var(--brand-50)', 100: 'var(--brand-100)', 500: 'var(--brand-500)',
+                            600: 'var(--brand-600)', 700: 'var(--brand-700)', 800: 'var(--brand-800)', 900: 'var(--brand-900)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ===== VARIABLES DE TEMA ===== */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --surface-50: #f8fafc;
+            --surface-100: #f1f5f9;
+            --surface-200: #e2e8f0;
+            --surface-800: #1e293b;
+            --surface-900: #0f172a;
+            --brand-50: #f0fdf4;
+            --brand-100: #dcfce7;
+            --brand-500: #22c55e;
+            --brand-600: #16a34a;
+            --brand-700: #15803d;
+            --brand-800: #166534;
+            --brand-900: #14532d;
+            --accent-color: #16a34a;
+            --header-bg: #0f172a;
+            --header-text: #ffffff;
+        }
+
+        .dark {
+            --bg-body: #020617;
+            --bg-card: #0f172a;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --border-color: #1e293b;
+            --surface-50: #0f172a;
+            --surface-100: #1e293b;
+            --surface-200: #334155;
+            --surface-800: #f1f5f9;
+            --surface-900: #f8fafc;
+        }
+
+        /* Paleta: Océano */
+        [data-palette="ocean"] {
+            --brand-50: #f0f9ff; --brand-100: #e0f2fe; --brand-500: #0ea5e9;
+            --brand-600: #0284c7; --brand-700: #0369a1; --brand-800: #075985; --brand-900: #0c4a6e;
+            --accent-color: #0284c7;
+        }
+        .dark[data-palette="ocean"] {
+            --brand-50: #082f49; --brand-100: #0c4a6e; --brand-500: #38bdf8;
+            --brand-600: #0ea5e9; --brand-700: #0284c7; --brand-800: #0369a1; --brand-900: #075985;
+            --accent-color: #38bdf8;
+        }
+
+        /* Paleta: Atardecer */
+        [data-palette="sunset"] {
+            --brand-50: #fdf4ff; --brand-100: #fae8ff; --brand-500: #d946ef;
+            --brand-600: #c026d3; --brand-700: #a21caf; --brand-800: #86198f; --brand-900: #701a75;
+            --accent-color: #c026d3;
+        }
+        .dark[data-palette="sunset"] {
+            --brand-50: #4a044e; --brand-100: #701a75; --brand-500: #e879f9;
+            --brand-600: #d946ef; --brand-700: #c026d3; --brand-800: #a21caf; --brand-900: #86198f;
+            --accent-color: #e879f9;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .dark .bg-white, .dark .bg-slate-50, .dark .bg-slate-100 { background-color: var(--bg-card) !important; }
+        .dark .bg-slate-200 { background-color: var(--surface-200) !important; }
+        .dark .bg-slate-800 { background-color: var(--surface-800) !important; }
+        .dark .bg-slate-900 { background-color: var(--surface-900) !important; }
+        .dark .text-slate-800, .dark .text-slate-900 { color: var(--text-primary) !important; }
+        .dark .text-slate-500, .dark .text-slate-400 { color: var(--text-secondary) !important; }
+        .dark .text-slate-300 { color: var(--text-muted) !important; }
+        .dark .text-slate-200 { color: #cbd5e1 !important; }
+        .dark .border-slate-200, .dark .border-slate-300 { border-color: var(--border-color) !important; }
+        .dark .border-slate-700 { border-color: var(--surface-200) !important; }
+        .dark .border-slate-800 { border-color: var(--border-color) !important; }
+        .dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3) !important; }
+        .dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.4) !important; }
+        .dark .ring-slate-300 { --tw-ring-color: #334155 !important; }
+        .dark input, .dark select, .dark textarea {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        .dark input::placeholder, .dark textarea::placeholder { color: var(--text-muted); }
+        .dark .custom-scrollbar::-webkit-scrollbar-track { background: var(--surface-100); }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--surface-200); }
+
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .ramo-card { transition: all 0.2s ease-in-out; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media print {
+            @page { size: landscape; margin: 0.4cm; }
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                zoom: 78%;
+            }
+            header, #dashboard-section, #ios-banner,
+            #busqueda-section, #leyenda-section, .no-print { display: none !important; }
+            .semestre-col[data-semestre="1"],
+            .semestre-col[data-semestre="2"],
+            .semestre-col[data-semestre="3"],
+            .semestre-col[data-semestre="4"] { display: none !important; }
+            #malla-section {
+                border: none !important; box-shadow: none !important;
+                padding: 0 !important; margin: 0 !important;
+            }
+            #malla-grid {
+                min-width: 100% !important;
+                display: grid !important;
+                grid-template-columns: repeat(6, 1fr) !important;
+                gap: 5px !important; overflow: hidden !important;
+            }
+            .semestre-col { width: 100% !important; }
+            .ramo-card {
+                background: white !important; border: 1.5px solid #333 !important;
+                color: black !important; box-shadow: none !important;
+                padding: 5px !important; min-height: 80px !important;
+                break-inside: avoid; page-break-inside: avoid;
+            }
+            .ramo-card * { color: black !important; }
+            .ramo-card [class*="bg-"] { background: transparent !important; border: 1px solid #999 !important; }
+            .ramo-card.print-aprobado {
+                background: #f8fafc !important; border: 1px dashed #cbd5e1 !important;
+                opacity: 0.4 !important;
+            }
+            .ramo-card.print-aprobado * { color: #64748b !important; }
+            .titulo-impresion {
+                display: block !important; text-align: center;
+                font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; color: black !important;
+            }
+        }
+        .titulo-impresion { display: none; }
+
+        .tooltip-pr { position: relative; }
+        .tooltip-pr::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 4px 8px; border-radius: 6px;
+            font-size: 10px; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s; z-index: 50;
+        }
+        .tooltip-pr:hover::after { opacity: 1; }
+
+        .theme-transition {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col theme-transition" data-theme="light" data-palette="uv">
+
+    <!-- Header -->
+    <header class="border-b shadow-lg sticky top-0 z-50 no-print theme-transition" style="background-color: var(--header-bg); color: var(--header-text); border-color: var(--border-color);">
+    <div class="max-w-[90rem] mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 rounded-lg text-white" style="background-color: var(--accent-color);">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-wide">Ingeniería Ambiental</h1>
+                <p class="text-[11px] opacity-70">Simulador Malla Curricular REXE 3024 — Revisado y Corregido</p>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <div id="carga-academica-header" class="hidden md:flex items-center gap-3 rounded-lg px-3 py-1.5 mr-1 theme-transition" style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);">
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2 h-2 rounded-full bg-amber-400"></div>
+                    <span class="text-[10px] uppercase font-semibold tracking-wider opacity-80">Cursando</span>
+                </div>
+                <div class="flex items-baseline gap-1">
+                    <span id="header-sct-cursando" class="text-sm font-black text-amber-400">0</span>
+                    <span class="text-[10px] opacity-60">SCT</span>
+                </div>
+                <div class="w-px h-4 opacity-20" style="background-color: var(--header-text);"></div>
+                <div class="flex items-baseline gap-1">
+                    <span id="header-ramos-cursando" class="text-sm font-black">0</span>
+                    <span class="text-[10px] opacity-60">ramos</span>
+                </div>
+            </div>
+            <div class="flex items-center rounded-lg overflow-hidden theme-transition" style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);">
+                <select id="select-semestre-objetivo" class="bg-transparent text-xs py-2 px-3 focus:outline-none cursor-pointer" style="color: var(--header-text);">
+                    <option value="1" style="background-color: var(--header-bg);">Hasta Semestre 1</option>
+                    <option value="2" style="background-color: var(--header-bg);">Hasta Semestre 2</option>
+                    <option value="3" style="background-color: var(--header-bg);">Hasta Semestre 3</option>
+                    <option value="4" style="background-color: var(--header-bg);">Hasta Semestre 4</option>
+                    <option value="5" style="background-color: var(--header-bg);">Hasta Semestre 5</option>
+                    <option value="6" style="background-color: var(--header-bg);" selected>Hasta Semestre 6</option>
+                    <option value="7" style="background-color: var(--header-bg);">Hasta Semestre 7</option>
+                    <option value="8" style="background-color: var(--header-bg);">Hasta Semestre 8</option>
+                    <option value="9" style="background-color: var(--header-bg);">Hasta Semestre 9</option>
+                    <option value="10" style="background-color: var(--header-bg);">Hasta Semestre 10</option>
+                </select>
+                <button onclick="completarHastaSemestre()" class="text-xs text-white font-medium py-2 px-3 transition border-l" style="background-color: var(--accent-color); border-color: rgba(255,255,255,0.2);">Completar</button>
+            </div>
+            <div class="flex items-center rounded-lg overflow-hidden theme-transition" style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);">
+                <button onclick="toggleDarkMode()" id="btn-dark-mode" title="Cambiar tema" class="p-2 hover:opacity-80 transition" style="color: var(--header-text);">
+                    <svg id="icon-moon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    <svg id="icon-sun" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                </button>
+                <select onchange="cambiarPaleta(this.value)" id="select-paleta" class="bg-transparent text-xs py-2 px-2 focus:outline-none cursor-pointer border-l" style="color: var(--header-text); border-color: rgba(255,255,255,0.2);">
+                    <option value="uv" style="background-color: var(--header-bg);">🌿 UV</option>
+                    <option value="ocean" style="background-color: var(--header-bg);">🌊 Océano</option>
+                    <option value="sunset" style="background-color: var(--header-bg);">🌅 Atardecer</option>
+                </select>
+            </div>
+            <div id="auth-section" class="flex items-center gap-2">
+                <button onclick="signInWithMicrosoft()" id="btn-login" class="text-xs font-bold py-2 px-3 rounded-lg transition flex items-center gap-1.5" style="background-color: rgba(255,255,255,0.15); color: var(--header-text); border: 1px solid rgba(255,255,255,0.2);">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M0 0h11.4v11.4H0zM12.6 0H24v11.4H12.6zM0 12.6h11.4V24H0zM12.6 12.6H24V24H12.6z"/></svg>
+                    <span class="hidden sm:inline">Iniciar sesión</span>
+                    <span class="sm:hidden">Entrar</span>
+                </button>
+                <div id="user-info" class="hidden flex items-center gap-2">
+                    <img id="user-avatar" src="" alt="" class="w-7 h-7 rounded-full border" style="border-color: rgba(255,255,255,0.3);">
+                    <span id="user-name" class="text-xs font-medium hidden md:inline max-w-[100px] truncate"></span>
+                    <button onclick="signOut()" title="Cerrar sesión" class="text-xs opacity-70 hover:opacity-100 transition p-1" style="color: var(--header-text);">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </button>
+                </div>
+            </div>
+            <button id="btn-instalar-pwa" onclick="instalarPWA()" class="hidden text-xs bg-white hover:bg-slate-100 text-slate-900 font-bold py-2 px-3 rounded-lg transition border border-slate-300 items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Instalar App
+            </button>
+            <button onclick="window.print()" class="text-xs bg-white hover:bg-slate-100 text-slate-900 font-bold py-2 px-3 rounded-lg transition border border-slate-300 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                Imprimir
+            </button>
+            <button onclick="resetearMalla()" class="text-xs font-medium py-2 px-3 rounded-lg transition" style="background-color: rgba(255,255,255,0.1); color: var(--header-text); border: 1px solid rgba(255,255,255,0.15);">Reiniciar</button>
+        </div>
+    </div>
+</header>
+    <!-- Banner iOS: cómo instalar -->
+    <div id="ios-banner" class="hidden no-print">
+        <div class="max-w-[90rem] mx-auto px-4 pt-3">
+            <div class="rounded-xl p-3 flex items-center justify-between gap-3 theme-transition" style="background: linear-gradient(135deg, var(--brand-600), var(--brand-700)); color: white;">
+                <div class="flex items-center gap-3">
+                    <div class="shrink-0 p-2 bg-white/20 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold">Instala esta app en tu iPhone</p>
+                        <p class="text-xs opacity-90">Toca <b>Compartir</b> <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg> y luego <b>"Agregar a pantalla de inicio"</b> para usarla sin conexión.</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('ios-banner').classList.add('hidden')" class="shrink-0 p-1.5 hover:bg-white/20 rounded-lg transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Dashboard -->
+    <section id="dashboard-section" class="max-w-[90rem] mx-auto px-4 pt-5 w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 no-print">
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Progreso Carrera</p>
+            <h3 id="stat-porcentaje" class="text-xl font-black text-slate-800 mt-1">0%</h3>
+            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                <div id="bar-porcentaje" class="bg-brand-600 h-1.5 rounded-full transition-all duration-500" style="width:0%"></div>
+            </div>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">SCT Aprobados</p>
+            <h3 id="stat-creditos" class="text-xl font-black text-slate-800 mt-1">0 / 306</h3>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">SCT Cursando</p>
+            <h3 id="stat-creditos-cursando" class="text-xl font-black text-amber-600 mt-1">0</h3>
+            <p class="text-[9px] text-slate-400 mt-0.5">Carga académica actual</p>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Ramos Cursando</p>
+            <h3 id="stat-cursando" class="text-xl font-black text-slate-800 mt-1">0</h3>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Semestres Completos</p>
+            <h3 id="stat-semestres" class="text-xl font-black text-slate-800 mt-1">0 / 10</h3>
+        </div>
+    </section>
+
+    <!-- Búsqueda -->
+    <section id="busqueda-section" class="max-w-[90rem] mx-auto px-4 pt-4 w-full no-print">
+        <div class="relative max-w-md">
+            <input type="text" id="buscar-ramo" placeholder="Buscar ramo por nombre o código..." 
+                   oninput="filtrarRamos(this.value)"
+                   class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-[90rem] mx-auto px-4 py-5 w-full flex-grow">
+
+        <!-- Malla -->
+        <section id="malla-section" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+            <div class="titulo-impresion">Malla Ingeniería Ambiental — 5º a 10º Semestre</div>
+
+            <div id="leyenda-section" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 no-print">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900">Malla Oficial REXE 3024</h2>
+                    <p class="text-[11px] text-slate-500">
+                        <span class="text-red-500 font-bold">Rojo = Prerrequisito</span> |
+                        <span class="text-blue-500 font-bold">Azul = Ramo que abre</span> |
+                        Click para cambiar estado | Click derecho para info
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-1.5 text-[11px]">
+                    <span class="px-2 py-1 bg-slate-100 text-slate-400 rounded border border-slate-200 font-medium">Bloqueado</span>
+                    <span class="px-2 py-1 bg-white text-slate-700 rounded border border-slate-300 font-medium">Pendiente</span>
+                    <span class="px-2 py-1 bg-amber-100 text-amber-800 rounded border border-amber-300 font-medium">Cursando</span>
+                    <span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded border border-emerald-300 font-medium">Aprobado</span>
+                    <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded border border-purple-300 font-medium">Solo PR</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto pb-3 custom-scrollbar">
+                <div id="malla-grid" class="flex gap-3 min-w-[2200px]">
+                    <!-- Render Dinámico -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===================== CALCULADORA DE NOTAS POR RAMO ===================== -->
+    <section id="calculadora-notas-section" class="max-w-[90rem] mx-auto px-4 pb-8 w-full no-print">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-2">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900">Calculadora de Notas por Ramo</h2>
+                    <p class="text-[11px] text-slate-500 max-w-2xl mt-1">
+                        Registra tus evaluaciones con nota y % (los % de todas las evaluaciones suman 100% de la nota del semestre → Nota de Presentación, NP).
+                        Si tu NP es igual o superior a 4.0, apruebas sin examen. Si es menor a 4.0, debes rendir examen: indica qué % de la nota final vale el examen
+                        y la calculadora te dirá qué nota necesitas para aprobar (Nota Final = NP × (100% − % examen) + Nota Examen × % examen).
+                        Nota de aprobación: <b>4.0</b>. Redondeo oficial: si la centésima es <b>0.06 o más</b>, la nota sube al décimo siguiente (ej: 3.86 → 3.9, 3.96 → 4.0).
+                        <span class="text-red-500 font-bold">Rojo</span> = reprobado (&lt; 4.0) · <span class="text-emerald-600 font-bold">Verde</span> = aprobado (≥ 4.0).
+                    </p>
+                </div>
+                <button onclick="agregarRamoCalc()" class="shrink-0 text-xs bg-brand-600 hover:bg-brand-700 text-white font-bold py-2 px-3 rounded-lg transition flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Agregar Ramo
+                </button>
+            </div>
+
+            <div id="calc-notas-container" class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                <!-- Render dinámico de tarjetas por ramo -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Info Ramo -->
+    <div id="modal-ramo" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[60] no-print" onclick="cerrarModal(event)">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-5 transform transition-all" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <span id="modal-codigo" class="text-xs font-mono text-slate-400"></span>
+                    <h3 id="modal-nombre" class="text-lg font-bold text-slate-900"></h3>
+                </div>
+                <button onclick="document.getElementById('modal-ramo').classList.add('hidden'); document.getElementById('modal-ramo').classList.remove('flex');" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Semestre</span><span id="modal-semestre" class="font-semibold"></span></div>
+                <div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Créditos SCT</span><span id="modal-sct" class="font-semibold"></span></div>
+                <div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Horas Semanales</span><span id="modal-hrs" class="font-semibold"></span></div>
+                <div class="py-1">
+                    <span class="text-slate-500 block mb-1">Prerrequisitos:</span>
+                    <div id="modal-prereqs" class="flex flex-wrap gap-1"></div>
+                </div>
+                <div class="py-1">
+                    <span class="text-slate-500 block mb-1">Abre los ramos:</span>
+                    <div id="modal-abre" class="flex flex-wrap gap-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== DATOS OFICIALES REXE 3024 — PLAN DEFINITIVO (verificado contra Plan_IAMB_REXE_3024_DEFINITIVO) =====
+
+        // Prerrequisitos de tipo "semestre completo aprobado" se modelan como la lista
+        // de todos los códigos de ese semestre (deben estar todos en estado 'aprobado' o 'solo_prerequisito')
+        const SEM6_IDS = ['IAMB321', 'IAMB322', 'IAMB323', 'IAMB324', 'IAMB325', 'IAMB326', 'TIPE I'];
+        const SEM7_IDS = ['IAMB411', 'IAMB412', 'IAMB413', 'IAMB414', 'IAMB415', 'IAMB416', 'IAMB417'];
+        const SEM8_IDS = ['IAMB421', 'IAMB422', 'IAMB423', 'IAMB424', 'IAMB425', 'IAMB426', 'IAMB427', 'TIPE II'];
+        const SEM9_IDS = ['IAMB511', 'IAMB512', 'IAMB513', 'IAMB514', 'IAMB515', 'IAMB517', 'TIPE III'];
+
+        const ramosData = [
+            // 1º Semestre — 7 asignaturas, 30 créditos
+            { id: 'IAMB-TNL', nombre: 'TALLER NIVELACIÓN I (LENGUAJE)', s: 1, sct: 4, hrs: 3.0, req: [] },
+            { id: 'IAMB111', nombre: 'BIOLOGÍA', s: 1, sct: 6, hrs: 4.5, req: [] },
+            { id: 'IAMB112', nombre: 'QUÍMICA GENERAL', s: 1, sct: 6, hrs: 4.5, req: [] },
+            { id: 'IAMB113', nombre: 'MATEMÁTICAS', s: 1, sct: 6, hrs: 4.5, req: [] },
+            { id: 'IAMB114', nombre: 'PRINCIPIOS DE COMPUTACIÓN Y PROGRAMACIÓN', s: 1, sct: 4, hrs: 3.0, req: [] },
+            { id: 'IAMB115', nombre: 'INTRODUCCIÓN A LAS CIENCIAS AMBIENTALES', s: 1, sct: 2, hrs: 1.5, req: [] },
+            { id: 'IAMB116', nombre: 'DESARROLLO Y FORMACIÓN PERSONAL', s: 1, sct: 2, hrs: 1.5, req: [] },
+
+            // 2º Semestre — 6 asignaturas, 30 créditos
+            { id: 'IAMB121', nombre: 'BIODIVERSIDAD', s: 2, sct: 10, hrs: 6.0, req: ['IAMB111'] },
+            { id: 'IAMB122', nombre: 'QUÍMICA INORGÁNICA Y AMBIENTAL', s: 2, sct: 6, hrs: 3.0, req: ['IAMB112'] },
+            { id: 'IAMB123', nombre: 'CÁLCULO DIFERENCIAL E INTEGRAL', s: 2, sct: 6, hrs: 4.5, req: ['IAMB113'] },
+            { id: 'IAMB124', nombre: 'MEDIO AMBIENTE Y SOCIEDAD', s: 2, sct: 2, hrs: 1.5, req: ['IAMB115'] },
+            { id: 'IAMB125', nombre: 'ORGANISMOS Y MEDIOAMBIENTE', s: 2, sct: 3, hrs: 3.0, req: ['IAMB111', 'IAMB115'] },
+            { id: 'IAMB126', nombre: 'PRÁCTICA DE VINCULACIÓN CON EL MEDIO', s: 2, sct: 3, hrs: 1.5, req: [] },
+
+            // 3º Semestre — 7 asignaturas, 30 créditos
+            { id: 'IAMB-TNI', nombre: 'TALLER NIVELACIÓN II (INGLÉS)', s: 3, sct: 2, hrs: 1.5, req: [] },
+            { id: 'IAMB211', nombre: 'INTRODUCCIÓN A LA INGENIERÍA', s: 3, sct: 4, hrs: 4.5, req: ['IAMB112', 'IAMB113'] },
+            { id: 'IAMB212', nombre: 'QUÍMICA ORGÁNICA Y AMBIENTAL', s: 3, sct: 6, hrs: 4.5, req: ['IAMB122'] },
+            { id: 'IAMB213', nombre: 'SERIES Y CÁLCULO EN VARIAS VARIABLES', s: 3, sct: 6, hrs: 4.5, req: ['IAMB123'] },
+            { id: 'IAMB214', nombre: 'FÍSICA I', s: 3, sct: 6, hrs: 4.5, req: ['IAMB123'] },
+            { id: 'IAMB215', nombre: 'DIBUJO DE INGENIERÍA', s: 3, sct: 3, hrs: 3.0, req: ['IAMB114'] },
+            { id: 'IAMB216', nombre: 'BIOESTADÍSTICA', s: 3, sct: 3, hrs: 3.0, req: ['IAMB113'] },
+
+            // 4º Semestre — 6 asignaturas, 30 créditos
+            { id: 'IAMB221', nombre: 'FUNDAMENTOS DE LA ECOLOGÍA', s: 4, sct: 8, hrs: 6.0, req: ['IAMB216', 'IAMB121'] },
+            { id: 'IAMB222', nombre: 'BIOQUÍMICA', s: 4, sct: 3, hrs: 3.0, req: ['IAMB212'] },
+            { id: 'IAMB223', nombre: 'ECUACIONES DIFERENCIALES Y ÁLGEBRA LINEAL', s: 4, sct: 6, hrs: 4.5, req: ['IAMB213'] },
+            { id: 'IAMB224', nombre: 'FÍSICA II', s: 4, sct: 8, hrs: 6.0, req: ['IAMB214'] },
+            { id: 'IAMB225', nombre: 'TERMODINÁMICA GENERAL', s: 4, sct: 3, hrs: 3.0, req: ['IAMB211'] },
+            { id: 'IAMB226', nombre: 'INGLÉS INSTRUMENTAL', s: 4, sct: 2, hrs: 1.5, req: ['IAMB-TNI'] },
+
+            // 5º Semestre — 5 asignaturas, 28 créditos
+            { id: 'IAMB311', nombre: 'MICROBIOLOGÍA AMBIENTAL', s: 5, sct: 8, hrs: 4.5, req: ['IAMB222', 'IAMB125'] },
+            { id: 'IAMB312', nombre: 'LABORATORIO DE QUÍMICA AMBIENTAL', s: 5, sct: 7, hrs: 6.0, req: ['IAMB212'] },
+            { id: 'IAMB313', nombre: 'MECÁNICA DE FLUIDOS', s: 5, sct: 6, hrs: 4.5, req: ['IAMB214', 'IAMB223'] },
+            { id: 'IAMB314', nombre: 'FÍSICO-QUÍMICA', s: 5, sct: 3, hrs: 3.0, req: ['IAMB223', 'IAMB225'] },
+            { id: 'IAMB315', nombre: 'GEOMORFOLOGÍA', s: 5, sct: 4, hrs: 3.0, req: ['IAMB215'] },
+
+            // 6º Semestre — 7 asignaturas, 32 créditos
+            { id: 'IAMB321', nombre: 'ECOTOXICOLOGÍA', s: 6, sct: 6, hrs: 4.5, req: ['IAMB221', 'IAMB312'] },
+            { id: 'IAMB322', nombre: 'OPERACIONES UNITARIAS', s: 6, sct: 5, hrs: 3.0, req: ['IAMB313', 'IAMB314'] },
+            { id: 'IAMB323', nombre: 'MODELACIÓN DE SISTEMAS I', s: 6, sct: 4, hrs: 3.0, req: ['IAMB223', 'IAMB215'] },
+            { id: 'IAMB324', nombre: 'METEOROLOGÍA Y CONTAMINACIÓN ATMOSFÉRICA', s: 6, sct: 3, hrs: 3.0, req: ['IAMB313'] },
+            { id: 'IAMB325', nombre: 'ORDENAMIENTO TERRITORIAL', s: 6, sct: 8, hrs: 6.0, req: ['IAMB315'] },
+            { id: 'IAMB326', nombre: 'PREVENCIÓN DE RIESGOS', s: 6, sct: 4, hrs: 3.0, req: ['IAMB312'] },
+            { id: 'TIPE I', nombre: 'TALLER INTEGRACIÓN PERFIL UV I', s: 6, sct: 2, hrs: 1.5, req: [] },
+
+            // 7º Semestre — 7 asignaturas, 32 créditos
+            { id: 'IAMB411', nombre: 'BIOTECNOLOGÍA AMBIENTAL', s: 7, sct: 4, hrs: 3.0, req: ['IAMB311'] },
+            { id: 'IAMB412', nombre: 'IMPACTOS AMBIENTALES', s: 7, sct: 5, hrs: 3.0, req: ['IAMB322', 'IAMB325'] },
+            { id: 'IAMB413', nombre: 'MANEJO INTEGRADO DE CUENCAS I', s: 7, sct: 4, hrs: 3.0, req: ['IAMB315', 'IAMB325'] },
+            { id: 'IAMB414', nombre: 'TRATAMIENTO DE RESIDUOS I', s: 7, sct: 4, hrs: 3.0, req: ['IAMB322', 'IAMB323'] },
+            { id: 'IAMB415', nombre: 'ECONOMÍA Y ADMINISTRACIÓN AMBIENTAL', s: 7, sct: 4, hrs: 3.0, req: SEM6_IDS },
+            { id: 'IAMB416', nombre: 'LEGISLACIÓN AMBIENTAL', s: 7, sct: 5, hrs: 3.0, req: SEM6_IDS },
+            { id: 'IAMB417', nombre: 'PRÁCTICA INICIAL', s: 7, sct: 6, hrs: 40.0, req: SEM6_IDS },
+
+            // 8º Semestre — 8 asignaturas, 30 créditos
+            { id: 'IAMB421', nombre: 'MANEJO DE LOS RECURSOS NATURALES', s: 8, sct: 4, hrs: 3.0, req: ['IAMB221', 'IAMB412'] },
+            { id: 'IAMB422', nombre: 'CONTAMINACIÓN MARINA Y MANEJO COSTERO', s: 8, sct: 4, hrs: 3.0, req: ['IAMB414'] },
+            { id: 'IAMB423', nombre: 'MODELACIÓN DE SISTEMAS II', s: 8, sct: 4, hrs: 3.0, req: ['IAMB323'] },
+            { id: 'IAMB424', nombre: 'AUDITORÍAS Y CONTROL DE PROCESOS', s: 8, sct: 4, hrs: 3.0, req: ['IAMB412', 'IAMB416'] },
+            { id: 'IAMB425', nombre: 'METODOLOGÍA DE LA INVESTIGACIÓN', s: 8, sct: 4, hrs: 3.0, req: SEM7_IDS },
+            { id: 'IAMB426', nombre: 'TRATAMIENTO DE RESIDUOS II', s: 8, sct: 4, hrs: 3.0, req: ['IAMB311', 'IAMB414'] },
+            { id: 'IAMB427', nombre: 'MANEJO INTEGRADO DE CUENCAS II', s: 8, sct: 4, hrs: 3.0, req: ['IAMB413'] },
+            { id: 'TIPE II', nombre: 'TALLER INTEGRACIÓN PERFIL UV II', s: 8, sct: 2, hrs: 1.5, req: ['TIPE I'] },
+
+            // 9º Semestre — 7 asignaturas, 35 créditos
+            { id: 'IAMB511', nombre: 'GESTIÓN ENERGÉTICA', s: 9, sct: 5, hrs: 4.5, req: ['IAMB322', 'IAMB424'] },
+            { id: 'IAMB512', nombre: 'INSTRUMENTOS DE GESTIÓN AMBIENTAL', s: 9, sct: 4, hrs: 3.0, req: ['IAMB412', 'IAMB416'] },
+            { id: 'IAMB513', nombre: 'ORGANIZACIÓN Y EVALUACIÓN DE PROYECTOS', s: 9, sct: 4, hrs: 3.0, req: ['IAMB415'] },
+            { id: 'IAMB514', nombre: 'SEMINARIO DE TÍTULO', s: 9, sct: 6, hrs: 4.5, req: SEM8_IDS },
+            { id: 'IAMB515', nombre: 'ELECTIVO FORMACIÓN PROFESIONAL', s: 9, sct: 2, hrs: 1.5, req: SEM8_IDS },
+            { id: 'IAMB517', nombre: 'PRÁCTICA PROFESIONAL', s: 9, sct: 12, hrs: 40.0, req: SEM8_IDS },
+            { id: 'TIPE III', nombre: 'TALLER INTEGRACIÓN PERFIL UV III', s: 9, sct: 2, hrs: 1.5, req: ['TIPE II'] },
+
+            // 10º Semestre — 2 asignaturas, 29 créditos
+            { id: 'IAMB521', nombre: 'TRABAJO DE TITULACIÓN', s: 10, sct: 27, hrs: 8.0, req: SEM9_IDS },
+            { id: 'IAMB522', nombre: 'ÉTICA PROFESIONAL', s: 10, sct: 2, hrs: 1.5, req: SEM9_IDS }
+        ];
+
+        const TOTAL_SCT = ramosData.reduce((a, r) => a + r.sct, 0);
+        const STORAGE_KEY = 'malla_ambiental_rexe3024_v4_definitivo';
+        let estadoRamos = {};
+        let filtroActual = '';
+
+        function inicializarEstado() {
+            const guardado = localStorage.getItem(STORAGE_KEY);
+            if (guardado) {
+                estadoRamos = JSON.parse(guardado);
+                ramosData.forEach(r => {
+                    if (!estadoRamos[r.id]) {
+                        estadoRamos[r.id] = { estado: 'pendiente', nota: 4.0 };
+                    }
+                });
+            } else {
+                ramosData.forEach(r => {
+                    estadoRamos[r.id] = { estado: 'pendiente', nota: 4.0 };
+                });
+            }
+        }
+
+        function guardarEstado() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(estadoRamos));
+        }
+
+        function prerequisitosCumplidos(ramoId) {
+            const ramo = ramosData.find(r => r.id === ramoId);
+            if (!ramo || ramo.req.length === 0) return true;
+            return ramo.req.every(reqId => {
+                const est = estadoRamos[reqId] && estadoRamos[reqId].estado;
+                return est === 'aprobado' || est === 'solo_prerequisito';
+            });
+        }
+
+        function highlightConnections(ramoId) {
+            const ramo = ramosData.find(r => r.id === ramoId);
+            if (!ramo) return;
+            const selfCard = document.getElementById('card-' + ramoId);
+            if (selfCard) selfCard.classList.add('ring-4', 'ring-slate-300', 'z-10');
+            ramo.req.forEach(reqId => {
+                const el = document.getElementById('card-' + reqId);
+                if (el) el.classList.add('ring-4', 'ring-red-500', 'shadow-md', 'scale-[1.02]', 'z-10');
+            });
+            ramosData.forEach(r => {
+                if (r.req.includes(ramoId)) {
+                    const el = document.getElementById('card-' + r.id);
+                    if (el) el.classList.add('ring-4', 'ring-blue-500', 'shadow-md', 'scale-[1.02]', 'z-10');
+                }
+            });
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.ramo-card').forEach(el => {
+                el.classList.remove('ring-4', 'ring-slate-300', 'ring-red-500', 'ring-blue-500', 'shadow-md', 'scale-[1.02]', 'z-10');
+            });
+        }
+
+        function abrirModal(ramoId) {
+            const ramo = ramosData.find(r => r.id === ramoId);
+            if (!ramo) return;
+            document.getElementById('modal-codigo').textContent = ramo.id;
+            document.getElementById('modal-nombre').textContent = ramo.nombre;
+            document.getElementById('modal-semestre').textContent = ramo.s + 'º';
+            document.getElementById('modal-sct').textContent = ramo.sct;
+            document.getElementById('modal-hrs').textContent = ramo.hrs > 0 ? ramo.hrs + ' hrs' : '—';
+
+            const prereqs = document.getElementById('modal-prereqs');
+            prereqs.innerHTML = ramo.req.length
+                ? ramo.req.map(id => `<span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded border">${id}</span>`).join('')
+                : '<span class="text-xs text-slate-400 italic">Sin prerrequisitos</span>';
+
+            const abre = ramosData.filter(r => r.req.includes(ramoId));
+            const abreDiv = document.getElementById('modal-abre');
+            abreDiv.innerHTML = abre.length
+                ? abre.map(r => `<span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded border border-blue-200">${r.id}</span>`).join('')
+                : '<span class="text-xs text-slate-400 italic">No es prerrequisito de otros ramos</span>';
+
+            const modal = document.getElementById('modal-ramo');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function cerrarModal(e) {
+            if (e.target.id === 'modal-ramo') {
+                document.getElementById('modal-ramo').classList.add('hidden');
+                document.getElementById('modal-ramo').classList.remove('flex');
+            }
+        }
+
+        function toggleRamo(ramoId) {
+            if (!prerequisitosCumplidos(ramoId)) {
+                const ramo = ramosData.find(r => r.id === ramoId);
+                const faltantes = ramo.req.filter(rid => {
+                    const est = estadoRamos[rid]?.estado;
+                    return est !== 'aprobado' && est !== 'solo_prerequisito';
+                });
+                alert('Prerrequisitos faltantes: ' + faltantes.join(', '));
+                return;
+            }
+            const estActual = estadoRamos[ramoId].estado;
+            let nuevo = 'pendiente';
+            if (estActual === 'pendiente') nuevo = 'cursando';
+            else if (estActual === 'cursando') nuevo = 'aprobado';
+            else if (estActual === 'aprobado') nuevo = 'solo_prerequisito';
+            else if (estActual === 'solo_prerequisito') nuevo = 'pendiente';
+
+            estadoRamos[ramoId].estado = nuevo;
+            limpiarDependencias();
+            guardarEstado();
+            render();
+        }
+
+        function limpiarDependencias() {
+            let cambio = true;
+            let iteraciones = 0;
+            while (cambio && iteraciones < 100) {
+                cambio = false;
+                iteraciones++;
+                ramosData.forEach(ramo => {
+                    const est = estadoRamos[ramo.id].estado;
+                    if (est !== 'pendiente' && !prerequisitosCumplidos(ramo.id)) {
+                        estadoRamos[ramo.id].estado = 'pendiente';
+                        cambio = true;
+                    }
+                });
+            }
+        }
+
+        function completarHastaSemestre() {
+            const sem = parseInt(document.getElementById('select-semestre-objetivo').value);
+            ramosData.forEach(r => {
+                if (r.s <= sem) estadoRamos[r.id].estado = 'aprobado';
+                else if (estadoRamos[r.id].estado === 'aprobado') estadoRamos[r.id].estado = 'pendiente';
+            });
+            limpiarDependencias();
+            guardarEstado();
+            render();
+        }
+
+        function resetearMalla() {
+            if (confirm('¿Reiniciar todo el progreso? Esta acción no se puede deshacer.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                inicializarEstado();
+                render();
+            }
+        }
+
+        function filtrarRamos(texto) {
+            filtroActual = texto.toLowerCase().trim();
+            renderMalla();
+        }
+
+        function renderMalla() {
+            const grid = document.getElementById('malla-grid');
+            grid.innerHTML = '';
+            for (let s = 1; s <= 10; s++) {
+                const col = document.createElement('div');
+                col.className = 'semestre-col w-[210px] flex-shrink-0 flex flex-col gap-2.5';
+                col.setAttribute('data-semestre', s);
+
+                const ramosSem = ramosData.filter(r => r.s === s);
+                const aprobadosSem = ramosSem.filter(r => estadoRamos[r.id].estado === 'aprobado').length;
+                const totalSem = ramosSem.length;
+                const progSem = Math.round((aprobadosSem / totalSem) * 100);
+
+                col.innerHTML = `
+                    <div class="bg-slate-100 p-2 rounded-lg border border-slate-200 text-center no-print">
+                        <div class="font-bold text-slate-700 text-xs">${s}º Semestre</div>
+                        <div class="w-full bg-slate-200 rounded-full h-1 mt-1">
+                            <div class="bg-brand-500 h-1 rounded-full transition-all" style="width:${progSem}%"></div>
+                        </div>
+                        <div class="text-[9px] text-slate-400 mt-0.5">${aprobadosSem}/${totalSem} ramos</div>
+                    </div>
+                    <div class="hidden titulo-impresion p-1 text-center font-bold text-xs border-b border-black">${s}º Sem.</div>
+                `;
+
+                ramosSem.forEach(ramo => {
+                    const info = estadoRamos[ramo.id];
+                    const ok = prerequisitosCumplidos(ramo.id);
+                    const coincide = filtroActual && (
+                        ramo.nombre.toLowerCase().includes(filtroActual) ||
+                        ramo.id.toLowerCase().includes(filtroActual)
+                    );
+
+                    let cls = "", bCls = "", txt = "", printAprobadoClass = "";
+                    if (!ok) {
+                        cls = "bg-slate-50 border-slate-200 text-slate-400 opacity-60 cursor-not-allowed";
+                        bCls = "bg-slate-200 text-slate-500"; txt = "Bloqueado";
+                    } else if (info.estado === 'aprobado') {
+                        cls = "bg-emerald-50 border-emerald-300 text-emerald-950 shadow-sm cursor-pointer";
+                        bCls = "bg-emerald-200 text-emerald-800"; txt = "Aprobado";
+                        printAprobadoClass = "print-aprobado";
+                    } else if (info.estado === 'solo_prerequisito') {
+                        cls = "bg-purple-50 border-purple-300 text-purple-950 shadow-sm cursor-pointer";
+                        bCls = "bg-purple-200 text-purple-800"; txt = "Solo PR";
+                    } else if (info.estado === 'cursando') {
+                        cls = "bg-amber-50 border-amber-400 text-amber-950 shadow-sm cursor-pointer";
+                        bCls = "bg-amber-200 text-amber-900"; txt = "Cursando";
+                    } else {
+                        cls = "bg-white border-slate-300 text-slate-800 hover:shadow-md cursor-pointer";
+                        bCls = "bg-slate-100 text-slate-600"; txt = "Pendiente";
+                    }
+
+                    const filtroStyle = coincide ? 'box-shadow: 0 0 0 3px #f59e0b;' : '';
+
+                    const card = document.createElement('div');
+                    card.id = 'card-' + ramo.id;
+                    card.className = `ramo-card p-2.5 rounded-xl border flex flex-col justify-between min-h-[100px] ${cls} ${printAprobadoClass}`;
+                    card.style.cssText = filtroStyle;
+                    card.onclick = (e) => { if (!e.ctrlKey && !e.metaKey) toggleRamo(ramo.id); };
+                    card.onmouseenter = () => highlightConnections(ramo.id);
+                    card.onmouseleave = () => clearHighlights();
+                    card.oncontextmenu = (e) => { e.preventDefault(); abrirModal(ramo.id); };
+
+                    const reqTooltip = ramo.req.length > 0 ? ramo.req.join(', ') : 'Sin PR';
+
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start mb-1 gap-1">
+                                <span class="text-[10px] font-mono font-bold opacity-70 truncate">${ramo.id}</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap ${bCls}">${txt}</span>
+                            </div>
+                            <h4 class="text-[11px] font-bold leading-tight">${ramo.nombre}</h4>
+                        </div>
+                        <div class="mt-1.5 pt-1.5 border-t border-black/5 flex justify-between text-[9px] opacity-80">
+                            <span>SCT: <b>${ramo.sct}</b></span>
+                            ${ramo.hrs > 0 ? `<span>${ramo.hrs}h</span>` : ''}
+                            <span class="tooltip-pr" data-tooltip="${reqTooltip}">PR: ${ramo.req.length}</span>
+                        </div>
+                    `;
+                    col.appendChild(card);
+                });
+                grid.appendChild(col);
+            }
+        }
+
+        function renderDashboard() {
+            let apro = 0, curs = 0, sctCursando = 0, semCompletos = 0;
+            ramosData.forEach(r => {
+                const inf = estadoRamos[r.id];
+                if (inf.estado === 'aprobado') {
+                    apro += r.sct;
+                }
+                if (inf.estado === 'cursando') {
+                    curs++;
+                    sctCursando += r.sct;
+                }
+            });
+
+            for (let s = 1; s <= 10; s++) {
+                const ramosSem = ramosData.filter(r => r.s === s);
+                if (ramosSem.every(r => estadoRamos[r.id].estado === 'aprobado')) semCompletos++;
+            }
+
+            const pct = ((apro / TOTAL_SCT) * 100 || 0);
+            document.getElementById('stat-porcentaje').innerText = pct.toFixed(1) + '%';
+            document.getElementById('bar-porcentaje').style.width = pct + '%';
+            document.getElementById('stat-creditos').innerText = `${apro} / ${TOTAL_SCT}`;
+            document.getElementById('stat-creditos-cursando').innerText = sctCursando;
+            document.getElementById('stat-cursando').innerText = curs;
+            document.getElementById('stat-semestres').innerText = `${semCompletos} / 10`;
+
+            // Actualizar carga académica en header (siempre visible)
+            const headerSct = document.getElementById('header-sct-cursando');
+            const headerRamos = document.getElementById('header-ramos-cursando');
+            if (headerSct) headerSct.innerText = sctCursando;
+            if (headerRamos) headerRamos.innerText = curs;
+        }
+
+        function render() { renderMalla(); renderDashboard(); if (typeof revisarNuevosHabilitados === 'function') revisarNuevosHabilitados(); }
+        // ===================== CALCULADORA DE NOTAS ======================
+        // ===================================================================
+        const CALC_STORAGE_KEY = 'malla_ambiental_calc_notas_v2';
+        const NOTA_APROBACION = 4.0;
+        let calcRamos = [];
+        let calcIdCounter = 0;
+
+        function nuevoIdCalc(prefijo) {
+            calcIdCounter++;
+            return prefijo + '-' + Date.now().toString(36) + '-' + calcIdCounter;
+        }
+
+        function crearEvaluacionDefault(n) {
+            return { id: nuevoIdCalc('ev'), nombre: 'Evaluación ' + n, nota: 4.0, pct: 0 };
+        }
+
+        function crearRamoCalcDefault(nombre) {
+            const evals = [];
+            for (let i = 1; i <= 6; i++) evals.push(crearEvaluacionDefault(i));
+            return {
+                id: nuevoIdCalc('ramo'),
+                nombre: nombre,
+                evaluaciones: evals,
+                examenPct: 0
+            };
+        }
+
+        function inicializarCalcNotas() {
+            const guardado = localStorage.getItem(CALC_STORAGE_KEY);
+            if (guardado) {
+                try {
+                    calcRamos = JSON.parse(guardado);
+                    if (!Array.isArray(calcRamos) || calcRamos.length === 0) throw new Error('vacio');
+                    return;
+                } catch (e) { /* cae al default */ }
+            }
+            calcRamos = [];
+            for (let i = 1; i <= 7; i++) {
+                calcRamos.push(crearRamoCalcDefault('Ramo ' + i));
+            }
+        }
+
+        function guardarCalcNotas() {
+            localStorage.setItem(CALC_STORAGE_KEY, JSON.stringify(calcRamos));
+        }
+
+        // Redondeo oficial a 1 decimal: si la centésima es 0.06 o más, sube al décimo siguiente;
+        // si es 0.05 o menos, se trunca (ej: 3.86 -> 3.9 | 3.95 -> 3.9 | 3.96 -> 4.0)
+        function redondearNota(nota) {
+            if (isNaN(nota)) return nota;
+            const negativo = nota < 0;
+            const centesimas = Math.round(Math.abs(nota) * 100);
+            const decimoBase = Math.floor(centesimas / 10);
+            const resto = centesimas % 10;
+            const decimoFinal = resto >= 6 ? decimoBase + 1 : decimoBase;
+            const resultado = decimoFinal / 10;
+            return negativo ? -resultado : resultado;
+        }
+
+        function claseColorNota(nota) {
+            const n = redondearNota(nota);
+            if (isNaN(n)) return 'text-slate-700';
+            return n >= NOTA_APROBACION ? 'text-emerald-600' : 'text-red-500';
+        }
+
+        function claseFondoNota(nota) {
+            const n = redondearNota(nota);
+            if (isNaN(n)) return 'bg-slate-50 border-slate-300';
+            return n >= NOTA_APROBACION
+                ? 'bg-emerald-50 border-emerald-300'
+                : 'bg-red-50 border-red-300';
+        }
+
+        // Modelo: las ponderaciones de las evaluaciones suman 100% de la nota del semestre (NP = Nota de Presentación).
+        // Si NP (redondeada) >= 4.0, el ramo se aprueba sin examen.
+        // Si NP < 4.0, el alumno rinde examen: la Nota Final = NP*(1 - %examen) + notaExamen*(%examen).
+        function calcularStatsRamo(ramo) {
+            const sumaPctEval = ramo.evaluaciones.reduce((a, e) => a + (parseFloat(e.pct) || 0), 0);
+            const notaPresentacion = ramo.evaluaciones.reduce((a, e) => {
+                const nota = parseFloat(e.nota) || 0;
+                const pct = parseFloat(e.pct) || 0;
+                return a + (nota * pct / 100);
+            }, 0);
+
+            const npRedondeada = redondearNota(notaPresentacion);
+            const aprobadoSinExamen = npRedondeada >= NOTA_APROBACION;
+
+            const examenPct = parseFloat(ramo.examenPct) || 0;
+            let notaNecesaria = null;
+            if (!aprobadoSinExamen && examenPct > 0) {
+                // Nota Final = NP*(1 - examenPct/100) + notaExamen*(examenPct/100) = 4.0  →  despejar notaExamen
+                notaNecesaria = (NOTA_APROBACION - notaPresentacion * (1 - examenPct / 100)) / (examenPct / 100);
+            }
+
+            return { sumaPctEval, notaPresentacion, npRedondeada, aprobadoSinExamen, examenPct, notaNecesaria };
+        }
+
+        function agregarRamoCalc() {
+            calcRamos.push(crearRamoCalcDefault('Ramo ' + (calcRamos.length + 1)));
+            guardarCalcNotas();
+            renderCalcNotas();
+        }
+
+        function eliminarRamoCalc(ramoId) {
+            if (!confirm('¿Eliminar esta tarjeta de ramo de la calculadora?')) return;
+            calcRamos = calcRamos.filter(r => r.id !== ramoId);
+            guardarCalcNotas();
+            renderCalcNotas();
+        }
+
+        function actualizarNombreRamoCalc(ramoId, valor) {
+            const ramo = calcRamos.find(r => r.id === ramoId);
+            if (ramo) { ramo.nombre = valor; guardarCalcNotas(); }
+        }
+
+        function agregarEvaluacionCalc(ramoId) {
+            const ramo = calcRamos.find(r => r.id === ramoId);
+            if (!ramo) return;
+            ramo.evaluaciones.push(crearEvaluacionDefault(ramo.evaluaciones.length + 1));
+            guardarCalcNotas();
+            renderCalcNotas();
+        }
+
+        function eliminarEvaluacionCalc(ramoId, evalId) {
+            const ramo = calcRamos.find(r => r.id === ramoId);
+            if (!ramo) return;
+            if (ramo.evaluaciones.length <= 1) { alert('Debe quedar al menos una evaluación.'); return; }
+            ramo.evaluaciones = ramo.evaluaciones.filter(e => e.id !== evalId);
+            guardarCalcNotas();
+            renderCalcNotas();
+        }
+
+        function actualizarEvaluacionCalc(ramoId, evalId, campo, valor) {
+            const ramo = calcRamos.find(r => r.id === ramoId);
+            if (!ramo) return;
+            const ev = ramo.evaluaciones.find(e => e.id === evalId);
+            if (!ev) return;
+            if (campo === 'nombre') {
+                ev.nombre = valor;
+            } else if (campo === 'nota') {
+                let v = parseFloat(valor);
+                if (isNaN(v)) v = 1.0;
+                v = Math.min(7.0, Math.max(1.0, v));
+                ev.nota = v;
+            } else if (campo === 'pct') {
+                let v = parseFloat(valor);
+                if (isNaN(v)) v = 0;
+                v = Math.min(100, Math.max(0, v));
+                ev.pct = v;
+            }
+            guardarCalcNotas();
+            // Solo re-renderizamos los totales de esa tarjeta (evita perder el foco del input)
+            actualizarResumenTarjeta(ramoId);
+        }
+
+        function actualizarExamenPctCalc(ramoId, valor) {
+            const ramo = calcRamos.find(r => r.id === ramoId);
+            if (!ramo) return;
+            let v = parseFloat(valor);
+            if (isNaN(v)) v = 0;
+            v = Math.min(100, Math.max(0, v));
+            ramo.examenPct = v;
+            guardarCalcNotas();
+            actualizarResumenTarjeta(ramoId);
+        }
+
+        // Texto informativo bajo el input de % de examen (sólo aplica si NP < 4.0)
+        function textoExamenInfoHTML(ramo, stats) {
+            const ex = parseFloat(ramo.examenPct) || 0;
+            if (stats.aprobadoSinExamen) {
+                return 'No necesitas rendir examen: tu Nota de Presentación ya aprueba el ramo.';
+            }
+            if (ex <= 0) {
+                return 'Tu Nota de Presentación es menor a 4.0 → debes rendir examen. Ingresa qué % de la nota final vale el examen.';
+            }
+            const resto = 100 - ex;
+            return `Nota Final = NP × ${resto}% + Nota Examen × ${ex}%.`;
+        }
+
+        // Actualiza solo el bloque de resumen/examen de una tarjeta sin re-renderizar todo (mantiene el foco)
+        function actualizarResumenTarjeta(ramoId) {
+            const ramo = calcRamos.find(r => r.id === ramoId);
+            if (!ramo) return;
+            const stats = calcularStatsRamo(ramo);
+            const resumenEl = document.getElementById('resumen-' + ramoId);
+            if (resumenEl) resumenEl.innerHTML = renderResumenHTML(ramo, stats);
+            const infoEl = document.getElementById('complemento-' + ramoId);
+            if (infoEl) infoEl.innerHTML = textoExamenInfoHTML(ramo, stats);
+            // Mostrar/ocultar el input de % examen según si se necesita o no
+            const wrapExamen = document.getElementById('wrap-examen-' + ramoId);
+            if (wrapExamen) wrapExamen.classList.toggle('opacity-40', stats.aprobadoSinExamen);
+        }
+
+        function renderResumenHTML(ramo, statsPrecalculadas) {
+            const stats = statsPrecalculadas || calcularStatsRamo(ramo);
+
+            const npHTML = `<span class="font-black text-base ${claseColorNota(stats.notaPresentacion)}">${redondearNota(stats.notaPresentacion).toFixed(1)}</span>
+                <span class="text-[10px] text-slate-400">(exacta: ${stats.notaPresentacion.toFixed(2)})</span>`;
+
+            let estadoHTML;
+            if (stats.aprobadoSinExamen) {
+                estadoHTML = `<span class="font-black text-emerald-600 text-sm">✓ Aprobado sin examen</span>`;
+            } else {
+                const ex = stats.examenPct;
+                if (ex <= 0) {
+                    estadoHTML = `<span class="font-bold text-red-500 text-xs">Reprobado con evaluaciones — falta indicar % del examen</span>`;
+                } else {
+                    const nn = stats.notaNecesaria;
+                    if (nn <= 1.0) {
+                        estadoHTML = `<span class="font-black text-emerald-600 text-sm">¡Apruebas con cualquier nota (mín. 1.0) en el examen!</span>`;
+                    } else if (nn > 7.0) {
+                        estadoHTML = `<span class="font-black text-red-500 text-sm">No alcanzas a aprobar (necesitarías ${nn.toFixed(2)})</span>`;
+                    } else {
+                        estadoHTML = `Necesitas al menos <span class="font-black text-base ${claseColorNota(nn)}">${redondearNota(nn).toFixed(1)}</span>
+                            <span class="text-[10px] text-slate-400">(exacto: ${nn.toFixed(2)})</span> en el examen`;
+                    }
+                }
+            }
+
+            return `
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-slate-500">Nota de Presentación (NP)</span>
+                    <span>${npHTML}</span>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-200 flex justify-between items-center gap-2">
+                    <span class="text-xs text-slate-500 shrink-0">Resultado</span>
+                    <span class="text-right">${estadoHTML}</span>
+                </div>
+            `;
+        }
+
+        function renderCalcNotas() {
+            const box = document.getElementById('calc-notas-container');
+            if (!box) return;
+
+            if (calcRamos.length === 0) {
+                box.innerHTML = `<div class="lg:col-span-2 p-4 bg-slate-50 text-slate-500 text-center rounded-xl border border-dashed border-slate-300 text-sm">
+                    No hay ramos en la calculadora. Haz click en "Agregar Ramo".
+                </div>`;
+                return;
+            }
+
+            box.innerHTML = calcRamos.map(ramo => {
+                const statsRamo = calcularStatsRamo(ramo);
+                const filasEval = ramo.evaluaciones.map(ev => `
+                    <div class="grid grid-cols-[1fr_64px_64px_28px] gap-1.5 items-center">
+                        <input type="text" value="${ev.nombre.replace(/"/g, '&quot;')}"
+                            onchange="actualizarEvaluacionCalc('${ramo.id}','${ev.id}','nombre', this.value)"
+                            class="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                            placeholder="Nombre evaluación">
+                        <input type="number" min="1.0" max="7.0" step="0.1" value="${parseFloat(ev.nota).toFixed(1)}"
+                            onchange="actualizarEvaluacionCalc('${ramo.id}','${ev.id}','nota', this.value)"
+                            class="w-full px-1.5 py-1.5 border rounded-lg text-xs text-center font-bold focus:ring-2 focus:ring-brand-500 focus:outline-none ${claseFondoNota(ev.nota)} ${claseColorNota(ev.nota)}">
+                        <input type="number" min="0" max="100" step="1" value="${parseFloat(ev.pct)}"
+                            onchange="actualizarEvaluacionCalc('${ramo.id}','${ev.id}','pct', this.value)"
+                            class="w-full px-1.5 py-1.5 border border-slate-300 rounded-lg text-xs text-center focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                            placeholder="%">
+                        <button onclick="eliminarEvaluacionCalc('${ramo.id}','${ev.id}')" title="Eliminar evaluación"
+                            class="w-full h-full flex items-center justify-center text-slate-300 hover:text-red-500 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 fade-in">
+                        <div class="flex justify-between items-center gap-2 mb-3">
+                            <input type="text" value="${ramo.nombre.replace(/"/g, '&quot;')}"
+                                onchange="actualizarNombreRamoCalc('${ramo.id}', this.value)"
+                                class="w-full font-bold text-sm px-2 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white"
+                                placeholder="Nombre del ramo">
+                            <button onclick="eliminarRamoCalc('${ramo.id}')" title="Eliminar ramo"
+                                class="shrink-0 text-slate-400 hover:text-red-500 transition p-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-[1fr_64px_64px_28px] gap-1.5 text-[9px] uppercase font-bold text-slate-400 mb-1 px-0.5">
+                            <span>Evaluación</span><span class="text-center">Nota</span><span class="text-center">% Sem.</span><span></span>
+                        </div>
+                        <div class="space-y-1.5">${filasEval}</div>
+
+                        <button onclick="agregarEvaluacionCalc('${ramo.id}')" class="mt-2 text-[11px] text-brand-700 hover:text-brand-800 font-bold flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Agregar evaluación
+                        </button>
+
+                        <div class="mt-3 pt-3 border-t border-slate-200">
+                            <div id="wrap-examen-${ramo.id}" class="transition ${statsRamo.aprobadoSinExamen ? 'opacity-40' : ''}">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <label class="text-xs font-bold text-slate-600">¿Cuánto vale el examen? (%)</label>
+                                    <input type="number" min="0" max="100" step="1" value="${parseFloat(ramo.examenPct)}"
+                                        onchange="actualizarExamenPctCalc('${ramo.id}', this.value)"
+                                        class="w-16 px-1.5 py-1 border border-slate-300 rounded-lg text-xs text-center font-bold focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                </div>
+                            </div>
+                            <p id="complemento-${ramo.id}" class="text-[10px] text-slate-400 mb-2">${textoExamenInfoHTML(ramo, statsRamo)}</p>
+                            <div id="resumen-${ramo.id}" class="bg-white rounded-lg p-2.5 border border-slate-200">
+                                ${renderResumenHTML(ramo, statsRamo)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+// ===================================================================
+        // ===================== PWA: INSTALACIÓN Y OFFLINE ================
+        // ===================================================================
+
+        // Registrar el Service Worker (offline + caché)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => {
+                    console.warn('No se pudo registrar el Service Worker:', err);
+                });
+            });
+        }
+
+        // Botón "Instalar App" — Chrome/Android/Edge disparan beforeinstallprompt.
+        // iOS/Safari no lo soportan: ahí se instala vía "Compartir > Agregar a inicio".
+        let deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            const btn = document.getElementById('btn-instalar-pwa');
+            if (btn) { btn.classList.remove('hidden'); btn.classList.add('flex'); }
+        });
+
+        async function instalarPWA() {
+            const btn = document.getElementById('btn-instalar-pwa');
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+            if (btn) btn.classList.add('hidden');
+            console.log('Resultado instalación PWA:', outcome);
+        }
+
+        window.addEventListener('appinstalled', () => {
+            const btn = document.getElementById('btn-instalar-pwa');
+            if (btn) btn.classList.add('hidden');
+        });
+
+        // ===================================================================
+        // ============ NOTIFICACIONES LOCALES: NUEVOS RAMOS HABILITADOS ====
+        // ===================================================================
+        // Nota: esto son notificaciones LOCALES (generadas por el propio navegador
+        // mientras la app está abierta o recién se abrió). Para recibir avisos con
+        // la app cerrada hace falta Push real con un servidor — ver README-PWA.md.
+        const NOTIF_STORAGE_KEY = 'malla_ambiental_habilitados_notificados';
+
+        function inicializarNotificacionesPrerrequisitos() {
+            if (!('Notification' in window)) return;
+            // Pide permiso la primera vez que hay ramos habilitados para inscribir
+            revisarNuevosHabilitados();
+        }
+
+        function revisarNuevosHabilitados() {
+            if (!('Notification' in window)) return;
+
+            const habilitadosAhora = ramosData
+                .filter(r => estadoRamos[r.id] && estadoRamos[r.id].estado === 'pendiente' && prerequisitosCumplidos(r.id))
+                .map(r => r.id);
+
+            let yaNotificados = [];
+            try { yaNotificados = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY)) || []; } catch (e) { yaNotificados = []; }
+
+            const nuevos = habilitadosAhora.filter(id => !yaNotificados.includes(id));
+
+            if (nuevos.length > 0) {
+                if (Notification.permission === 'granted') {
+                    mostrarNotificacionHabilitados(nuevos);
+                } else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permiso => {
+                        if (permiso === 'granted') mostrarNotificacionHabilitados(nuevos);
+                    });
+                }
+            }
+
+            localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(habilitadosAhora));
+        }
+
+        function mostrarNotificacionHabilitados(idsRamos) {
+            const nombres = idsRamos
+                .map(id => ramosData.find(r => r.id === id))
+                .filter(Boolean)
+                .map(r => `${r.id} — ${r.nombre}`);
+
+            const titulo = idsRamos.length === 1
+                ? '¡Nuevo ramo habilitado!'
+                : `¡${idsRamos.length} ramos habilitados!`;
+            const cuerpo = nombres.slice(0, 3).join('\n') + (nombres.length > 3 ? `\n+${nombres.length - 3} más...` : '');
+
+            if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification(titulo, { body: cuerpo, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png' });
+                });
+            } else if (Notification.permission === 'granted') {
+                new Notification(titulo, { body: cuerpo, icon: 'icons/icon-192.png' });
+            }
+        }
+    </script>
+
+    
+        // ===================================================================
+        // ===================== SISTEMA DE TEMA =============================
+        // ===================================================================
+        const THEME_KEY = 'malla_theme_prefs';
+        let currentTheme = 'light';
+        let currentPalette = 'uv';
+
+        function cargarTema() {
+            const guardado = localStorage.getItem(THEME_KEY);
+            if (guardado) {
+                try {
+                    const prefs = JSON.parse(guardado);
+                    currentTheme = prefs.theme || 'light';
+                    currentPalette = prefs.palette || 'uv';
+                } catch (e) {}
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                currentTheme = 'dark';
+            }
+            aplicarTema(currentTheme, currentPalette);
+        }
+
+        function aplicarTema(theme, palette) {
+            currentTheme = theme;
+            currentPalette = palette;
+            const html = document.documentElement;
+            const body = document.body;
+
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                body.setAttribute('data-theme', 'dark');
+                document.getElementById('meta-status-bar').setAttribute('content', 'black-translucent');
+            } else {
+                html.classList.remove('dark');
+                body.setAttribute('data-theme', 'light');
+                document.getElementById('meta-status-bar').setAttribute('content', 'default');
+            }
+
+            body.setAttribute('data-palette', palette);
+            document.getElementById('select-paleta').value = palette;
+
+            const sun = document.getElementById('icon-sun');
+            const moon = document.getElementById('icon-moon');
+            if (sun && moon) {
+                if (theme === 'dark') {
+                    sun.classList.add('hidden');
+                    moon.classList.remove('hidden');
+                } else {
+                    sun.classList.remove('hidden');
+                    moon.classList.add('hidden');
+                }
+            }
+
+            const metaTheme = document.getElementById('meta-theme-color');
+            if (metaTheme) {
+                const rootStyles = getComputedStyle(document.body);
+                const accent = rootStyles.getPropertyValue('--accent-color').trim();
+                metaTheme.setAttribute('content', accent || '#16a34a');
+            }
+
+            localStorage.setItem(THEME_KEY, JSON.stringify({ theme, palette }));
+        }
+
+        function toggleDarkMode() {
+            const nuevo = currentTheme === 'light' ? 'dark' : 'light';
+            aplicarTema(nuevo, currentPalette);
+        }
+
+        function cambiarPaleta(palette) {
+            aplicarTema(currentTheme, palette);
+        }
+
+        // ===================================================================
+        // ===================== SUPABASE: AUTH + SYNC =======================
+        // ===================================================================
+        const SUPABASE_URL = 'https://TU-PROJECT.supabase.co';
+        const SUPABASE_ANON_KEY = 'TU-ANON-KEY';
+
+        let supabaseClient = null;
+        let currentUser = null;
+        let syncTimeout = null;
+
+        function initSupabase() {
+            if (!window.supabase || SUPABASE_URL.includes('TU-PROJECT')) {
+                console.log('Supabase no configurado aún. Usando solo localStorage.');
+                return;
+            }
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                setupAuthListener();
+                checkSession();
+            } catch (e) {
+                console.error('Error inicializando Supabase:', e);
+            }
+        }
+
+        function setupAuthListener() {
+            if (!supabaseClient) return;
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    currentUser = session.user;
+                    loadUserProgress(currentUser.id);
+                    updateAuthUI(session.user);
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    updateAuthUI(null);
+                }
+            });
+        }
+
+        async function checkSession() {
+            if (!supabaseClient) return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                updateAuthUI(session.user);
+                loadUserProgress(session.user.id);
+            }
+        }
+
+        async function signInWithMicrosoft() {
+            if (!supabaseClient) {
+                alert('La nube aún no está configurada. Ve al código y reemplaza SUPABASE_URL y SUPABASE_ANON_KEY con tus credenciales.');
+                return;
+            }
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'azure',
+                options: {
+                    scopes: 'email',
+                    redirectTo: window.location.origin + window.location.pathname
+                }
+            });
+            if (error) {
+                console.error('Error login:', error);
+                alert('Error al iniciar sesión: ' + error.message);
+            }
+        }
+
+        async function signOut() {
+            if (!supabaseClient) return;
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            updateAuthUI(null);
+        }
+
+        function updateAuthUI(user) {
+            const btnLogin = document.getElementById('btn-login');
+            const userInfo = document.getElementById('user-info');
+            const userAvatar = document.getElementById('user-avatar');
+            const userName = document.getElementById('user-name');
+
+            if (user) {
+                if (btnLogin) btnLogin.classList.add('hidden');
+                if (userInfo) userInfo.classList.remove('hidden');
+                if (userAvatar) {
+                    userAvatar.src = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
+                    userAvatar.alt = user.user_metadata?.full_name || user.email || 'Usuario';
+                }
+                if (userName) userName.textContent = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+            } else {
+                if (btnLogin) btnLogin.classList.remove('hidden');
+                if (userInfo) userInfo.classList.add('hidden');
+            }
+        }
+
+        async function saveUserProgress() {
+            if (!supabaseClient || !currentUser) return;
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(async () => {
+                const progress = {
+                    user_id: currentUser.id,
+                    estado_ramos: estadoRamos,
+                    calc_ramos: calcRamos,
+                    theme_prefs: { theme: currentTheme, palette: currentPalette },
+                    updated_at: new Date().toISOString()
+                };
+                const { error } = await supabaseClient
+                    .from('user_progress')
+                    .upsert(progress, { onConflict: 'user_id' });
+                if (error) console.error('Error guardando en la nube:', error);
+                else console.log('Progreso guardado en la nube ✅');
+            }, 2000);
+        }
+
+        async function loadUserProgress(userId) {
+            if (!supabaseClient) return;
+            const { data, error } = await supabaseClient
+                .from('user_progress')
+                .select('*')
+                .eq('user_id', userId)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                console.error('Error cargando progreso:', error);
+                return;
+            }
+
+            if (data) {
+                let cambio = false;
+                if (data.estado_ramos && Object.keys(data.estado_ramos).length > 0) {
+                    estadoRamos = data.estado_ramos;
+                    cambio = true;
+                }
+                if (data.calc_ramos && data.calc_ramos.length > 0) {
+                    calcRamos = data.calc_ramos;
+                    cambio = true;
+                }
+                if (data.theme_prefs) {
+                    aplicarTema(data.theme_prefs.theme || 'light', data.theme_prefs.palette || 'uv');
+                }
+                if (cambio) {
+                    guardarEstado();
+                    guardarCalcNotas();
+                    render();
+                    renderCalcNotas();
+                }
+            }
+        }
+
+        const originalGuardarEstado = guardarEstado;
+        guardarEstado = function() {
+            originalGuardarEstado();
+            saveUserProgress();
+        };
+        const originalGuardarCalcNotas = guardarCalcNotas;
+        guardarCalcNotas = function() {
+            originalGuardarCalcNotas();
+            saveUserProgress();
+        };
+
+        // ===================================================================
+        // ===================== BANNER iOS ==================================
+        // ===================================================================
+        function detectarIOS() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.navigator.standalone === true;
+            const banner = document.getElementById('ios-banner');
+            if (isIOS && !isStandalone && banner) {
+                banner.classList.remove('hidden');
+            }
+        }
+
+        // ===================================================================
+        // ===================== INICIALIZACIÓN ==============================
+        // ===================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarTema();
+            inicializarEstado();
+            inicializarCalcNotas();
+            render();
+            renderCalcNotas();
+            inicializarNotificacionesPrerrequisitos();
+            initSupabase();
+            detectarIOS();
+        });
+<!-- Footer Autoría -->
+    <footer class="py-4 mt-auto border-t no-print theme-transition" style="background-color: var(--header-bg); color: var(--text-secondary); border-color: var(--border-color);">
+        <div class="max-w-[90rem] mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px]">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent-color);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <span class="font-medium" style="color: var(--text-primary);">Desarrollado por Tamara Pinto</span>
+                <span class="hidden sm:inline opacity-30">·</span>
+                <span class="opacity-70">Estudiante de Ingeniería Ambiental — Universidad de Valparaíso (UV)</span>
+                <span class="hidden sm:inline opacity-30">·</span>
+                <a href="mailto:tnpintoc@gmail.com" class="opacity-70 hover:opacity-100 transition underline decoration-dotted" style="color: var(--accent-color);">tnpintoc@gmail.com</a>
+            </div>
+            <div class="opacity-50">
+                Plan REXE 3024 · Simulador Interactivo
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
