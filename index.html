@@ -2,28 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Malla Interactiva - Ingeniería Ambiental (Plan Oficial REXE 3024)</title>
+
+    <!-- ===== PWA: manifest, tema e íconos ===== -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#16a34a">
+    <meta name="description" content="Simulador interactivo de la malla curricular de Ingeniería Ambiental — Plan Oficial REXE 3024, Universidad de Valparaíso.">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+    <!-- iOS: hace que "Agregar a inicio" abra en modo standalone (sin barra de Safari) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Malla IAMB">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <script src="https://cdn.tailwindcss.com"></script>
+
+
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e',
-                            600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d',
-                        }
-                    }
-                }
-            }
+        // ===== Paletas de color disponibles =====
+        const TAILWIND_PALETTES = {
+            verde:  { 50:'#f0fdf4', 100:'#dcfce7', 500:'#22c55e', 600:'#16a34a', 700:'#15803d', 800:'#166534', 900:'#14532d' },
+            azul:   { 50:'#eff6ff', 100:'#dbeafe', 500:'#3b82f6', 600:'#2563eb', 700:'#1d4ed8', 800:'#1e40af', 900:'#1e3a8a' },
+            morado: { 50:'#faf5ff', 100:'#f3e8ff', 500:'#a855f7', 600:'#9333ea', 700:'#7e22ce', 800:'#6b21a8', 900:'#581c87' }
+        };
+
+        function aplicarConfigTailwind(paletteName) {
+            tailwind.config = {
+                darkMode: 'class',
+                theme: { extend: { colors: { brand: TAILWIND_PALETTES[paletteName] || TAILWIND_PALETTES.verde } } }
+            };
         }
+
+        // Aplicar tema y paleta guardados ANTES del primer pintado (evita parpadeo)
+        (function inicializarTemaTemprano() {
+            const modoGuardado = localStorage.getItem('malla_tema_modo') || 'light';
+            const paletaGuardada = localStorage.getItem('malla_tema_paleta') || 'verde';
+            if (modoGuardado === 'dark') document.documentElement.classList.add('dark');
+            aplicarConfigTailwind(paletaGuardada);
+        })();
     </script>
     <style>
         .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        html.dark .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        html.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+        html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .ramo-card { transition: all 0.2s ease-in-out; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -85,9 +113,66 @@
             transition: opacity 0.2s; z-index: 50;
         }
         .tooltip-pr:hover::after { opacity: 1; }
+
+        /* ========== DARK MODE: overrides de superficies y estados ==========
+           Cubren tanto el markup estático como las tarjetas/insignias generadas
+           dinámicamente por JS (renderMalla, calculadora de notas), sin tener
+           que duplicar variantes dark: en cada template string. */
+        html.dark .bg-white { background-color: #1e293b; }
+        html.dark .bg-slate-50 { background-color: #0f172a; }
+        html.dark .bg-slate-50\/50 { background-color: rgba(30,41,59,0.5); }
+        html.dark .bg-slate-100 { background-color: #1e293b; }
+        html.dark .bg-slate-200 { background-color: #334155; }
+        html.dark .bg-slate-300 { background-color: #475569; }
+        html.dark .text-slate-900 { color: #f8fafc; }
+        html.dark .text-slate-800 { color: #f1f5f9; }
+        html.dark .text-slate-700 { color: #e2e8f0; }
+        html.dark .text-slate-600 { color: #cbd5e1; }
+        html.dark .text-slate-500 { color: #94a3b8; }
+        html.dark .text-slate-400 { color: #64748b; }
+        html.dark .border-slate-100 { border-color: #1e293b; }
+        html.dark .border-slate-200 { border-color: #334155; }
+        html.dark .border-slate-300 { border-color: #475569; }
+
+        html.dark .bg-emerald-50  { background-color: rgba(16,185,129,.12); }
+        html.dark .bg-emerald-100 { background-color: rgba(16,185,129,.16); }
+        html.dark .bg-emerald-200 { background-color: rgba(16,185,129,.24); }
+        html.dark .border-emerald-300 { border-color: rgba(16,185,129,.45); }
+        html.dark .text-emerald-950,
+        html.dark .text-emerald-800,
+        html.dark .text-emerald-600 { color: #6ee7b7; }
+
+        html.dark .bg-amber-50  { background-color: rgba(245,158,11,.12); }
+        html.dark .bg-amber-100 { background-color: rgba(245,158,11,.16); }
+        html.dark .bg-amber-200 { background-color: rgba(245,158,11,.24); }
+        html.dark .border-amber-300,
+        html.dark .border-amber-400 { border-color: rgba(245,158,11,.5); }
+        html.dark .text-amber-950,
+        html.dark .text-amber-900,
+        html.dark .text-amber-800,
+        html.dark .text-amber-600 { color: #fcd34d; }
+
+        html.dark .bg-purple-50  { background-color: rgba(168,85,247,.12); }
+        html.dark .bg-purple-100 { background-color: rgba(168,85,247,.16); }
+        html.dark .bg-purple-200 { background-color: rgba(168,85,247,.24); }
+        html.dark .border-purple-300 { border-color: rgba(168,85,247,.45); }
+        html.dark .text-purple-950,
+        html.dark .text-purple-800 { color: #d8b4fe; }
+
+        html.dark .bg-red-50 { background-color: rgba(239,68,68,.12); }
+        html.dark .border-red-300 { border-color: rgba(239,68,68,.45); }
+        html.dark .text-red-500 { color: #f87171; }
+
+        html.dark .bg-blue-50 { background-color: rgba(59,130,246,.12); }
+        html.dark .border-blue-200 { border-color: rgba(59,130,246,.4); }
+        html.dark .text-blue-700 { color: #93c5fd; }
+
+        html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg,
+        html.dark .shadow-xl, html.dark .shadow-2xl { box-shadow: 0 1px 2px rgba(0,0,0,.4); }
     </style>
+<base target="_blank">
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col transition-colors duration-200">
 
     <!-- Header -->
     <header class="bg-slate-900 text-white border-b border-slate-800 shadow-lg sticky top-0 z-50 no-print">
@@ -137,6 +222,31 @@
                     </select>
                     <button onclick="completarHastaSemestre()" class="text-xs bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-3 transition border-l border-slate-700">Completar</button>
                 </div>
+                <!-- Apariencia: dark mode + paletas -->
+                <div class="relative">
+                    <button id="btn-apariencia" onclick="toggleMenuApariencia()" title="Apariencia" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-2 px-2.5 rounded-lg transition border border-slate-700 flex items-center gap-1">
+                        <svg id="icono-tema" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </button>
+                    <div id="menu-apariencia" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 z-50 text-slate-800 dark:text-slate-100">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold">Modo oscuro</span>
+                            <button onclick="toggleModoOscuro()" id="switch-modo-oscuro" class="w-10 h-5.5 h-6 rounded-full bg-slate-300 dark:bg-brand-600 relative transition-colors" style="width:2.5rem;height:1.375rem;">
+                                <span id="switch-modo-oscuro-dot" class="absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform" style="width:1.125rem;height:1.125rem;"></span>
+                            </button>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Paleta de color</span>
+                        <div class="flex items-center gap-2 mt-2">
+                            <button onclick="cambiarPaleta('verde')" data-paleta="verde" class="paleta-swatch w-7 h-7 rounded-full bg-[#16a34a] ring-offset-2 ring-offset-white dark:ring-offset-slate-800 transition" title="Verde"></button>
+                            <button onclick="cambiarPaleta('azul')" data-paleta="azul" class="paleta-swatch w-7 h-7 rounded-full bg-[#2563eb] ring-offset-2 ring-offset-white dark:ring-offset-slate-800 transition" title="Azul"></button>
+                            <button onclick="cambiarPaleta('morado')" data-paleta="morado" class="paleta-swatch w-7 h-7 rounded-full bg-[#9333ea] ring-offset-2 ring-offset-white dark:ring-offset-slate-800 transition" title="Morado"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-instalar-pwa" onclick="instalarPWA()" class="hidden text-xs bg-white hover:bg-slate-100 text-slate-900 font-bold py-2 px-3 rounded-lg transition border border-slate-300 items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Instalar App
+                </button>
                 <button onclick="window.print()" class="text-xs bg-slate-100 hover:bg-white text-slate-900 font-bold py-2 px-3 rounded-lg transition border border-slate-300 flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                     Imprimir
@@ -148,29 +258,29 @@
 
     <!-- Dashboard -->
     <section id="dashboard-section" class="max-w-[90rem] mx-auto px-4 pt-5 w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 no-print">
-        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Progreso Carrera</p>
-            <h3 id="stat-porcentaje" class="text-xl font-black text-slate-800 mt-1">0%</h3>
-            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+            <h3 id="stat-porcentaje" class="text-xl font-black text-slate-800 dark:text-slate-100 mt-1">0%</h3>
+            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-2">
                 <div id="bar-porcentaje" class="bg-brand-600 h-1.5 rounded-full transition-all duration-500" style="width:0%"></div>
             </div>
         </div>
-        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">SCT Aprobados</p>
-            <h3 id="stat-creditos" class="text-xl font-black text-slate-800 mt-1">0 / 306</h3>
+            <h3 id="stat-creditos" class="text-xl font-black text-slate-800 dark:text-slate-100 mt-1">0 / 306</h3>
         </div>
-        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">SCT Cursando</p>
-            <h3 id="stat-creditos-cursando" class="text-xl font-black text-amber-600 mt-1">0</h3>
+            <h3 id="stat-creditos-cursando" class="text-xl font-black text-amber-600 dark:text-amber-400 mt-1">0</h3>
             <p class="text-[9px] text-slate-400 mt-0.5">Carga académica actual</p>
         </div>
-        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Ramos Cursando</p>
-            <h3 id="stat-cursando" class="text-xl font-black text-slate-800 mt-1">0</h3>
+            <h3 id="stat-cursando" class="text-xl font-black text-slate-800 dark:text-slate-100 mt-1">0</h3>
         </div>
-        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Semestres Completos</p>
-            <h3 id="stat-semestres" class="text-xl font-black text-slate-800 mt-1">0 / 10</h3>
+            <h3 id="stat-semestres" class="text-xl font-black text-slate-800 dark:text-slate-100 mt-1">0 / 10</h3>
         </div>
     </section>
 
@@ -179,7 +289,7 @@
         <div class="relative max-w-md">
             <input type="text" id="buscar-ramo" placeholder="Buscar ramo por nombre o código..." 
                    oninput="filtrarRamos(this.value)"
-                   class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                   class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -190,15 +300,15 @@
     <main class="max-w-[90rem] mx-auto px-4 py-5 w-full flex-grow">
 
         <!-- Malla -->
-        <section id="malla-section" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+        <section id="malla-section" class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
             <div class="titulo-impresion">Malla Ingeniería Ambiental — 5º a 10º Semestre</div>
 
             <div id="leyenda-section" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 no-print">
                 <div>
-                    <h2 class="text-base font-bold text-slate-900">Malla Oficial REXE 3024</h2>
-                    <p class="text-[11px] text-slate-500">
-                        <span class="text-red-500 font-bold">Rojo = Prerrequisito</span> |
-                        <span class="text-blue-500 font-bold">Azul = Ramo que abre</span> |
+                    <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">Malla Oficial REXE 3024</h2>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                        <span class="text-red-500 dark:text-red-400 font-bold">Rojo = Prerrequisito</span> |
+                        <span class="text-blue-500 dark:text-blue-400 font-bold">Azul = Ramo que abre</span> |
                         Click para cambiar estado | Click derecho para info
                     </p>
                 </div>
@@ -225,11 +335,8 @@
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-2">
                 <div>
-                    <h2 class="text-base font-bold text-slate-900">Calculadora de Notas por Ramo</h2>
+                    <h2 class="text-base font-bold text-slate-900">Calculadora de notas por ramo</h2>
                     <p class="text-[11px] text-slate-500 max-w-2xl mt-1">
-                        Registra tus evaluaciones con nota y % (los % de todas las evaluaciones suman 100% de la nota del semestre → Nota de Presentación, NP).
-                        Si tu NP es igual o superior a 4.0, apruebas sin examen. Si es menor a 4.0, debes rendir examen: indica qué % de la nota final vale el examen
-                        y la calculadora te dirá qué nota necesitas para aprobar (Nota Final = NP × (100% − % examen) + Nota Examen × % examen).
                         Nota de aprobación: <b>4.0</b>. Redondeo oficial: si la centésima es <b>0.06 o más</b>, la nota sube al décimo siguiente (ej: 3.86 → 3.9, 3.96 → 4.0).
                         <span class="text-red-500 font-bold">Rojo</span> = reprobado (&lt; 4.0) · <span class="text-emerald-600 font-bold">Verde</span> = aprobado (≥ 4.0).
                     </p>
@@ -391,6 +498,7 @@
 
         function guardarEstado() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(estadoRamos));
+
         }
 
         function prerequisitosCumplidos(ramoId) {
@@ -637,7 +745,7 @@
             if (headerRamos) headerRamos.innerText = curs;
         }
 
-        function render() { renderMalla(); renderDashboard(); }
+        function render() { renderMalla(); renderDashboard(); if (typeof revisarNuevosHabilitados === 'function') revisarNuevosHabilitados(); }
         // ===================== CALCULADORA DE NOTAS ======================
         // ===================================================================
         const CALC_STORAGE_KEY = 'malla_ambiental_calc_notas_v2';
@@ -675,13 +783,14 @@
                 } catch (e) { /* cae al default */ }
             }
             calcRamos = [];
-            for (let i = 1; i <= 7; i++) {
+            for (let i = 1; i <= 1; i++) {
                 calcRamos.push(crearRamoCalcDefault('Ramo ' + i));
             }
         }
 
         function guardarCalcNotas() {
             localStorage.setItem(CALC_STORAGE_KEY, JSON.stringify(calcRamos));
+
         }
 
         // Redondeo oficial a 1 decimal: si la centésima es 0.06 o más, sube al décimo siguiente;
@@ -736,6 +845,10 @@
         }
 
         function agregarRamoCalc() {
+            if (calcRamos.length >= 10) {
+                alert('Máximo 10 ramos permitidos.');
+                return;
+            }
             calcRamos.push(crearRamoCalcDefault('Ramo ' + (calcRamos.length + 1)));
             guardarCalcNotas();
             renderCalcNotas();
@@ -944,12 +1057,179 @@
             }).join('');
         }
 
+
+
+        // ===================================================================
+        // ===================== APARIENCIA: DARK MODE + PALETAS ===========
+        // ===================================================================
+        function toggleMenuApariencia(forzarCerrar) {
+            const menu = document.getElementById('menu-apariencia');
+            if (!menu) return;
+            if (forzarCerrar === true) { menu.classList.add('hidden'); return; }
+            menu.classList.toggle('hidden');
+        }
+
+        // Cierra el menú de apariencia al hacer click fuera de él
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('menu-apariencia');
+            const btn = document.getElementById('btn-apariencia');
+            if (!menu || menu.classList.contains('hidden')) return;
+            if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function actualizarSwitchModoOscuro(activo) {
+            const switchEl = document.getElementById('switch-modo-oscuro');
+            const dot = document.getElementById('switch-modo-oscuro-dot');
+            const icono = document.getElementById('icono-tema');
+            if (switchEl) switchEl.classList.toggle('bg-brand-600', activo);
+            if (switchEl) switchEl.classList.toggle('bg-slate-300', !activo);
+            if (dot) dot.style.transform = activo ? 'translateX(1.125rem)' : 'translateX(0)';
+            if (icono) {
+                // Sol (claro) vs luna (oscuro)
+                icono.innerHTML = activo
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+            }
+        }
+
+        function toggleModoOscuro() {
+            const activo = !document.documentElement.classList.contains('dark');
+            document.documentElement.classList.toggle('dark', activo);
+            localStorage.setItem('malla_tema_modo', activo ? 'dark' : 'light');
+            actualizarSwitchModoOscuro(activo);
+        }
+
+        function actualizarSwatchesPaleta(paletaActiva) {
+            document.querySelectorAll('.paleta-swatch').forEach(sw => {
+                const activa = sw.getAttribute('data-paleta') === paletaActiva;
+                sw.classList.toggle('ring-2', activa);
+                sw.classList.toggle('ring-slate-900', activa);
+                sw.classList.toggle('dark:ring-white', activa);
+            });
+        }
+
+        function cambiarPaleta(nombre) {
+            if (!TAILWIND_PALETTES[nombre]) return;
+            aplicarConfigTailwind(nombre);
+            localStorage.setItem('malla_tema_paleta', nombre);
+            actualizarSwatchesPaleta(nombre);
+        }
+
+        function inicializarApariencia() {
+            const activo = document.documentElement.classList.contains('dark');
+            actualizarSwitchModoOscuro(activo);
+            const paletaGuardada = localStorage.getItem('malla_tema_paleta') || 'verde';
+            actualizarSwatchesPaleta(paletaGuardada);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             inicializarEstado();
             inicializarCalcNotas();
             render();
             renderCalcNotas();
+            inicializarNotificacionesPrerrequisitos();
+            inicializarApariencia();
+
         });
+
+        // ===================================================================
+        // ===================== PWA: INSTALACIÓN Y OFFLINE ================
+        // ===================================================================
+
+        // Registrar el Service Worker (offline + caché)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => {
+                    console.warn('No se pudo registrar el Service Worker:', err);
+                });
+            });
+        }
+
+        // Botón "Instalar App" — Chrome/Android/Edge disparan beforeinstallprompt.
+        // iOS/Safari no lo soportan: ahí se instala vía "Compartir > Agregar a inicio".
+        let deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            const btn = document.getElementById('btn-instalar-pwa');
+            if (btn) { btn.classList.remove('hidden'); btn.classList.add('flex'); }
+        });
+
+        async function instalarPWA() {
+            const btn = document.getElementById('btn-instalar-pwa');
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+            if (btn) btn.classList.add('hidden');
+            console.log('Resultado instalación PWA:', outcome);
+        }
+
+        window.addEventListener('appinstalled', () => {
+            const btn = document.getElementById('btn-instalar-pwa');
+            if (btn) btn.classList.add('hidden');
+        });
+
+        // ===================================================================
+        // ============ NOTIFICACIONES LOCALES: NUEVOS RAMOS HABILITADOS ====
+        // ===================================================================
+        // Nota: esto son notificaciones LOCALES (generadas por el propio navegador
+        // mientras la app está abierta o recién se abrió). Para recibir avisos con
+        // la app cerrada hace falta Push real con un servidor — ver README-PWA.md.
+        const NOTIF_STORAGE_KEY = 'malla_ambiental_habilitados_notificados';
+
+        function inicializarNotificacionesPrerrequisitos() {
+            if (!('Notification' in window)) return;
+            // Pide permiso la primera vez que hay ramos habilitados para inscribir
+            revisarNuevosHabilitados();
+        }
+
+        function revisarNuevosHabilitados() {
+            if (!('Notification' in window)) return;
+
+            const habilitadosAhora = ramosData
+                .filter(r => estadoRamos[r.id] && estadoRamos[r.id].estado === 'pendiente' && prerequisitosCumplidos(r.id))
+                .map(r => r.id);
+
+            let yaNotificados = [];
+            try { yaNotificados = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY)) || []; } catch (e) { yaNotificados = []; }
+
+            const nuevos = habilitadosAhora.filter(id => !yaNotificados.includes(id));
+
+            if (nuevos.length > 0) {
+                if (Notification.permission === 'granted') {
+                    mostrarNotificacionHabilitados(nuevos);
+                } else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permiso => {
+                        if (permiso === 'granted') mostrarNotificacionHabilitados(nuevos);
+                    });
+                }
+            }
+
+            localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(habilitadosAhora));
+        }
+
+        function mostrarNotificacionHabilitados(idsRamos) {
+            const nombres = idsRamos
+                .map(id => ramosData.find(r => r.id === id))
+                .filter(Boolean)
+                .map(r => `${r.id} — ${r.nombre}`);
+
+            const titulo = idsRamos.length === 1
+                ? '¡Nuevo ramo habilitado!'
+                : `¡${idsRamos.length} ramos habilitados!`;
+            const cuerpo = nombres.slice(0, 3).join('\n') + (nombres.length > 3 ? `\n+${nombres.length - 3} más...` : '');
+
+            if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification(titulo, { body: cuerpo, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png' });
+                });
+            } else if (Notification.permission === 'granted') {
+                new Notification(titulo, { body: cuerpo, icon: 'icons/icon-192.png' });
+            }
+        }
     </script>
 
     <!-- Footer Autoría -->
