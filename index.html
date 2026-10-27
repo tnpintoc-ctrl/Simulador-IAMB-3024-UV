@@ -386,13 +386,6 @@
     <script>
         // ===== DATOS OFICIALES REXE 3024 — PLAN DEFINITIVO (verificado contra Plan_IAMB_REXE_3024_DEFINITIVO) =====
 
-        // Prerrequisitos de tipo "semestre completo aprobado" se modelan como la lista
-        // de todos los códigos de ese semestre (deben estar todos en estado 'aprobado' o 'solo_prerequisito')
-        const SEM6_IDS = ['IAMB321', 'IAMB322', 'IAMB323', 'IAMB324', 'IAMB325', 'IAMB326', 'TIPE I'];
-        const SEM7_IDS = ['IAMB411', 'IAMB412', 'IAMB413', 'IAMB414', 'IAMB415', 'IAMB416', 'IAMB417'];
-        const SEM8_IDS = ['IAMB421', 'IAMB422', 'IAMB423', 'IAMB424', 'IAMB425', 'IAMB426', 'IAMB427', 'TIPE II'];
-        const SEM9_IDS = ['IAMB511', 'IAMB512', 'IAMB513', 'IAMB514', 'IAMB515', 'IAMB517', 'TIPE III'];
-
         const ramosData = [
             // 1º Semestre — 7 asignaturas, 30 créditos
             { id: 'IAMB-TNL', nombre: 'TALLER NIVELACIÓN I (LENGUAJE)', s: 1, sct: 4, hrs: 3.0, req: [] },
@@ -412,7 +405,7 @@
             { id: 'IAMB126', nombre: 'PRÁCTICA DE VINCULACIÓN CON EL MEDIO', s: 2, sct: 3, hrs: 1.5, req: [] },
 
             // 3º Semestre — 7 asignaturas, 30 créditos
-            { id: 'IAMB-TNI', nombre: 'TALLER NIVELACIÓN I (INGLÉS)', s: 3, sct: 2, hrs: 1.5, req: [] },
+            { id: 'IAMB-TNI', nombre: 'TALLER NIVELACIÓN II (INGLÉS)', s: 3, sct: 2, hrs: 1.5, req: [] },
             { id: 'IAMB211', nombre: 'INTRODUCCIÓN A LA INGENIERÍA', s: 3, sct: 4, hrs: 4.5, req: ['IAMB112', 'IAMB113'] },
             { id: 'IAMB212', nombre: 'QUÍMICA ORGÁNICA Y AMBIENTAL', s: 3, sct: 6, hrs: 4.5, req: ['IAMB122'] },
             { id: 'IAMB213', nombre: 'SERIES Y CÁLCULO EN VARIAS VARIABLES', s: 3, sct: 6, hrs: 4.5, req: ['IAMB123'] },
@@ -426,19 +419,19 @@
             { id: 'IAMB223', nombre: 'ECUACIONES DIFERENCIALES Y ÁLGEBRA LINEAL', s: 4, sct: 6, hrs: 4.5, req: ['IAMB213'] },
             { id: 'IAMB224', nombre: 'FÍSICA II', s: 4, sct: 8, hrs: 6.0, req: ['IAMB214'] },
             { id: 'IAMB225', nombre: 'TERMODINÁMICA GENERAL', s: 4, sct: 3, hrs: 3.0, req: ['IAMB211'] },
-            { id: 'IAMB226', nombre: 'INGLÉS INSTRUMENTAL', s: 4, sct: 2, hrs: 1.5, req: ['IAMB-TNI'] },
+            { id: 'IAMB226', nombre: 'INGLES INSTRUMENTAL', s: 4, sct: 2, hrs: 1.5, req: ['IAMB-TNI'] },
 
             // 5º Semestre — 5 asignaturas, 28 créditos
             { id: 'IAMB311', nombre: 'MICROBIOLOGÍA AMBIENTAL', s: 5, sct: 8, hrs: 4.5, req: ['IAMB222', 'IAMB125'] },
             { id: 'IAMB312', nombre: 'LABORATORIO DE QUÍMICA AMBIENTAL', s: 5, sct: 7, hrs: 6.0, req: ['IAMB212'] },
-            { id: 'IAMB313', nombre: 'MECÁNICA DE FLUIDOS', s: 5, sct: 6, hrs: 4.5, req: ['IAMB214', 'IAMB223'] },
+            { id: 'IAMB313', nombre: 'MECÁNICA DE FLUIDOS', s: 5, sct: 6, hrs: 4.5, req: ['IAMB223', 'IAMB214'] },
             { id: 'IAMB314', nombre: 'FÍSICO-QUÍMICA', s: 5, sct: 3, hrs: 3.0, req: ['IAMB223', 'IAMB225'] },
             { id: 'IAMB315', nombre: 'GEOMORFOLOGÍA', s: 5, sct: 4, hrs: 3.0, req: ['IAMB215'] },
 
             // 6º Semestre — 7 asignaturas, 32 créditos
             { id: 'IAMB321', nombre: 'ECOTOXICOLOGÍA', s: 6, sct: 6, hrs: 4.5, req: ['IAMB221', 'IAMB312'] },
             { id: 'IAMB322', nombre: 'OPERACIONES UNITARIAS', s: 6, sct: 5, hrs: 3.0, req: ['IAMB313', 'IAMB314'] },
-            { id: 'IAMB323', nombre: 'MODELACIÓN DE SISTEMAS I', s: 6, sct: 4, hrs: 3.0, req: ['IAMB223', 'IAMB215'] },
+            { id: 'IAMB323', nombre: 'MODELACIÓN DE SISTEMAS I', s: 6, sct: 4, hrs: 3.0, req: ['IAMB215', 'IAMB223'] },
             { id: 'IAMB324', nombre: 'METEOROLOGÍA Y CONTAMINACIÓN ATMOSFÉRICA', s: 6, sct: 3, hrs: 3.0, req: ['IAMB313'] },
             { id: 'IAMB325', nombre: 'ORDENAMIENTO TERRITORIAL', s: 6, sct: 8, hrs: 6.0, req: ['IAMB315'] },
             { id: 'IAMB326', nombre: 'PREVENCIÓN DE RIESGOS', s: 6, sct: 4, hrs: 3.0, req: ['IAMB312'] },
@@ -450,15 +443,15 @@
             { id: 'IAMB413', nombre: 'MANEJO INTEGRADO DE CUENCAS I', s: 7, sct: 4, hrs: 3.0, req: ['IAMB315', 'IAMB325'] },
             { id: 'IAMB414', nombre: 'TRATAMIENTO DE RESIDUOS I', s: 7, sct: 4, hrs: 3.0, req: ['IAMB322', 'IAMB323'] },
             { id: 'IAMB415', nombre: 'ECONOMÍA Y ADMINISTRACIÓN AMBIENTAL', s: 7, sct: 4, hrs: 3.0, req: [] },
-            { id: 'IAMB416', nombre: 'LEGISLACIÓN AMBIENTAL', s: 7, sct: 5, hrs: 3.0, req: SEM6_IDS },
-            { id: 'IAMB417', nombre: 'PRÁCTICA INICIAL', s: 7, sct: 6, hrs: 40.0, req: SEM6_IDS },
+            { id: 'IAMB416', nombre: 'LEGISLACIÓN AMBIENTAL', s: 7, sct: 5, hrs: 3.0, req: ['IAMB321', 'IAMB322', 'IAMB323', 'IAMB324', 'IAMB325', 'IAMB326', 'TIPE I', 'IAMB311'] },
+            { id: 'IAMB417', nombre: 'PRÁCTICA INICIAL', s: 7, sct: 6, hrs: 40.0, req: ['IAMB311', 'IAMB312', 'IAMB313', 'IAMB314', 'IAMB315', 'IAMB-TNL', 'IAMB116'] },
 
             // 8º Semestre — 8 asignaturas, 30 créditos
             { id: 'IAMB421', nombre: 'MANEJO DE LOS RECURSOS NATURALES', s: 8, sct: 4, hrs: 3.0, req: ['IAMB221', 'IAMB412'] },
             { id: 'IAMB422', nombre: 'CONTAMINACIÓN MARINA Y MANEJO COSTERO', s: 8, sct: 4, hrs: 3.0, req: ['IAMB414'] },
             { id: 'IAMB423', nombre: 'MODELACIÓN DE SISTEMAS II', s: 8, sct: 4, hrs: 3.0, req: ['IAMB323'] },
-            { id: 'IAMB424', nombre: 'AUDITORÍAS Y CONTROL DE PROCESOS', s: 8, sct: 4, hrs: 3.0, req: ['IAMB412', 'IAMB416'] },
-            { id: 'IAMB425', nombre: 'METODOLOGÍA DE LA INVESTIGACIÓN', s: 8, sct: 4, hrs: 3.0, req: SEM7_IDS },
+            { id: 'IAMB424', nombre: 'AUDITORIAS Y CONTROL DE PROCESOS', s: 8, sct: 4, hrs: 3.0, req: ['IAMB412', 'IAMB416'] },
+            { id: 'IAMB425', nombre: 'METODOLOGÍA DE LA INVESTIGACIÓN', s: 8, sct: 4, hrs: 3.0, req: ['IAMB411', 'IAMB412', 'IAMB413', 'IAMB414', 'IAMB415', 'IAMB416', 'IAMB417'] },
             { id: 'IAMB426', nombre: 'TRATAMIENTO DE RESIDUOS II', s: 8, sct: 4, hrs: 3.0, req: ['IAMB311', 'IAMB414'] },
             { id: 'IAMB427', nombre: 'MANEJO INTEGRADO DE CUENCAS II', s: 8, sct: 4, hrs: 3.0, req: ['IAMB413'] },
             { id: 'TIPE II', nombre: 'TALLER INTEGRACIÓN PERFIL UV II', s: 8, sct: 2, hrs: 1.5, req: ['TIPE I'] },
@@ -467,14 +460,14 @@
             { id: 'IAMB511', nombre: 'GESTIÓN ENERGÉTICA', s: 9, sct: 5, hrs: 4.5, req: ['IAMB322', 'IAMB424'] },
             { id: 'IAMB512', nombre: 'INSTRUMENTOS DE GESTIÓN AMBIENTAL', s: 9, sct: 4, hrs: 3.0, req: ['IAMB412', 'IAMB416'] },
             { id: 'IAMB513', nombre: 'ORGANIZACIÓN Y EVALUACIÓN DE PROYECTOS', s: 9, sct: 4, hrs: 3.0, req: ['IAMB415'] },
-            { id: 'IAMB514', nombre: 'SEMINARIO DE TÍTULO', s: 9, sct: 6, hrs: 4.5, req: SEM8_IDS },
-            { id: 'IAMB515', nombre: 'ELECTIVO FORMACIÓN PROFESIONAL', s: 9, sct: 2, hrs: 1.5, req: SEM8_IDS },
-            { id: 'IAMB517', nombre: 'PRÁCTICA PROFESIONAL', s: 9, sct: 12, hrs: 40.0, req: SEM8_IDS },
+            { id: 'IAMB514', nombre: 'SEMINARIO DE TÍTULO', s: 9, sct: 6, hrs: 4.5, req: ['IAMB421', 'IAMB422', 'IAMB423', 'IAMB424', 'IAMB425', 'IAMB426', 'IAMB427'] },
+            { id: 'IAMB515', nombre: 'ELECTIVO FORMACIÓN PROFESIONAL', s: 9, sct: 2, hrs: 1.5, req: ['IAMB421', 'IAMB422', 'IAMB423', 'IAMB424', 'IAMB425', 'IAMB426', 'IAMB427'] },
+            { id: 'IAMB517', nombre: 'PRÁCTICA PROFESIONAL', s: 9, sct: 12, hrs: 40.0, req: ['IAMB411', 'IAMB412', 'IAMB413', 'IAMB414', 'IAMB415', 'IAMB416', 'IAMB417'] },
             { id: 'TIPE III', nombre: 'TALLER INTEGRACIÓN PERFIL UV III', s: 9, sct: 2, hrs: 1.5, req: ['TIPE II'] },
 
             // 10º Semestre — 2 asignaturas, 29 créditos
-            { id: 'IAMB521', nombre: 'TRABAJO DE TITULACIÓN', s: 10, sct: 27, hrs: 8.0, req: SEM9_IDS },
-            { id: 'IAMB522', nombre: 'ÉTICA PROFESIONAL', s: 10, sct: 2, hrs: 1.5, req: SEM9_IDS }
+            { id: 'IAMB521', nombre: 'TRABAJO DE TITULACIÓN', s: 10, sct: 27, hrs: 8.0, req: ['IAMB511', 'IAMB512', 'IAMB513', 'IAMB514', 'IAMB515', 'TIPE III', 'IAMB517'] },
+            { id: 'IAMB522', nombre: 'ÉTICA PROFESIONAL', s: 10, sct: 2, hrs: 1.5, req: ['IAMB511', 'IAMB512', 'IAMB513', 'IAMB514', 'IAMB515', 'TIPE III', 'IAMB517'] }
         ];
 
         const TOTAL_SCT = ramosData.reduce((a, r) => a + r.sct, 0);
